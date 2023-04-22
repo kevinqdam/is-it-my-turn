@@ -3,7 +3,7 @@ import { PropsWithChildren } from "react";
 const Layout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
     <>
-      <nav className="flex flex-row justify-between px-12 py-6 text-xl">
+      <nav className="flex flex-row items-center justify-between px-12 py-6 text-xl">
         <div>
           <div>[Logo] Is it my turn?</div>
         </div>
