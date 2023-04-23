@@ -5,8 +5,6 @@ import Link from "next/link";
 import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
-
   return (
     <>
       <Head>
@@ -25,7 +23,7 @@ const Home: NextPage = () => {
             <div className="flex flex-row justify-evenly">
               <div className="flex flex-col gap-y-4">
                 <span className="text-4xl">Perfect for...</span>
-                <ol className="flex flex-col gap-2 text-2xl">
+                <ul className="flex flex-col gap-2 text-2xl">
                   <li>
                     <span className="flex flex-row items-center gap-4">
                       <div className="text-4xl">🎲</div>
@@ -51,7 +49,7 @@ const Home: NextPage = () => {
                     </span>
                   </li>
                   <li className="pt-4">...and more!</li>
-                </ol>
+                </ul>
               </div>
               <div className="flex flex-col justify-center gap-8">
                 <div className="flex flex-row justify-evenly">
