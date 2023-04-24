@@ -50,53 +50,69 @@ const Session: NextPage = () => {
     const sessionItemsCopy = [...sessionItems.data];
     sessionItemsCopy.sort((a, b) => a.order - b.order);
     setQueueItems(sessionItemsCopy.filter((item) => item.list === "QUEUE"));
-    const maybeNextItem = sessionItemsCopy.find((item) => item.list === "NEXT");
-    if (maybeNextItem) {
-      setNextItem(maybeNextItem);
-    }
+    setNextItem(sessionItemsCopy.find((item) => item.list === "NEXT"));
     setWentAlreadyItems(
       sessionItemsCopy.filter((item) => item.list === "WENT")
     );
   }, [sessionItems.isLoading, sessionItems.isError, sessionItems.data]);
 
   return (
-    <main className="flex flex-col gap-6">
+    <main className="flex min-h-fit flex-col gap-6">
       <div className="flex flex-row justify-evenly gap-2">
         <h1 className="w-full text-center">In the queue</h1>
         <h1 className="w-full text-center">Up next</h1>
         <h1 className="w-full text-center">Went already</h1>
       </div>
-      <div className="flex flex-row justify-evenly gap-2">
+      <div className="flex flex-row min-h-fit justify-evenly gap-2">
         <div className="flex w-full flex-col">
           {(sessionItems.isLoading && <LoadingList itemCount={10} />) || (
-            <div className="h-64 w-full bg-red-200 p-2">
+            <div className="w-full p-4">
               <Reorder.Group
                 values={queueItems}
                 onReorder={setQueueItems}
-                className="flex h-full w-full flex-col justify-center"
+                className="flex h-full w-full flex-col gap-3"
               >
-                {queueItems.map((queueItem) => (
-                  <Reorder.Item key={queueItem.id} value={queueItem.name}>
-                    {queueItem.name}
-                  </Reorder.Item>
+                {queueItems.map((queueItem, index) => (
+                  <>
+                    {index > 0 ? (
+                      <hr className="border-1 w-full self-center border-gray-300" />
+                    ) : undefined}
+                    <Reorder.Item key={queueItem.id} value={queueItem.name}>
+                      <span className="flex flex-row justify-between gap-2 hover:cursor-grab">
+                        {queueItem.name}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          className="h-6 w-6 stroke-slate-400 stroke-1"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                          />
+                        </svg>
+                      </span>
+                    </Reorder.Item>
+                  </>
                 ))}
               </Reorder.Group>
             </div>
           )}
         </div>
-        <div className="w-1 bg-slate-300"></div>
+        <div className="w-1 bg-gray-400"></div>
         {(sessionItems.isLoading && <LoadingList itemCount={1} />) || (
-          <div className="flex h-64 w-full flex-col justify-center bg-green-200">
+          <div className="flex w-full flex-col justify-center">
             {nextItem && (
-              <span className="animate-fade-in text-center transition-all">
+              <span className="text-center">
                 {nextItem.name}
               </span>
             )}
           </div>
         )}
-        <div className="w-1 bg-slate-300"></div>
+        <div className="w-1 bg-gray-400"></div>
         {(sessionItems.isLoading && <LoadingList itemCount={10} />) || (
-          <div className="flex h-64 w-full flex-col justify-center bg-blue-200 p-2">
+          <div className="flex w-full flex-col p-4 gap-3">
             {wentAlreadyItems.map((wentAlreadyItem) => (
               <span>{wentAlreadyItem.name}</span>
             ))}
