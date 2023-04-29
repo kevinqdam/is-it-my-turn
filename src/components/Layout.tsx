@@ -2,7 +2,7 @@ import { PropsWithChildren } from "react";
 
 const Layout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
-    <>
+    <div className="min-h-screen">
       <nav className="flex flex-row items-center justify-between px-12 py-6 text-xl">
         <div>
           <div>[Logo] Is it my turn?</div>
@@ -20,7 +20,7 @@ const Layout: React.FC<PropsWithChildren> = ({ children }) => {
       <footer className="flex flex-row justify-evenly px-8 py-4">
         <span>© 2023 Kevin Q. Dam</span>
       </footer>
-    </>
+    </div>
   );
 };
 

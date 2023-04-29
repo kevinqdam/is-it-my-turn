@@ -29,9 +29,33 @@ export const router = createTRPCRouter({
       await new Promise((resolve) => setTimeout(resolve, 1_000));
 
       return Promise.resolve([
-        { name: "Foo", order: 0, list: "QUEUE" },
-        { name: "Bar", order: 1, list: "QUEUE" },
-        { name: "Baz", order: 2, list: "QUEUE" },
-      ] as Item[]);
+        {
+          name: "Foo",
+          id: "foo",
+          order: 0,
+          list: "QUEUE",
+          updatedAt: new Date(),
+          createdAt: new Date(),
+          sessionSlug: "123",
+        },
+        {
+          name: "Bar",
+          id: "bar",
+          order: 1,
+          list: "QUEUE",
+          updatedAt: new Date(),
+          createdAt: new Date(),
+          sessionSlug: "123",
+        },
+        {
+          name: "Baz",
+          id: "baz",
+          order: 2,
+          list: "QUEUE",
+          updatedAt: new Date(),
+          createdAt: new Date(),
+          sessionSlug: "123",
+        },
+      ] satisfies Item[] as Item[]);
     }),
 });

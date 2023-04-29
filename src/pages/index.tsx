@@ -15,10 +15,10 @@ const Home: NextPage = () => {
         <div className="flex flex-row justify-evenly">
           <div className="flex flex-col gap-24">
             <h1 className="text-center text-8xl">
-              Never forget who's next again.
+              Never forget who&apos;s next again.
             </h1>
             <span className="px-64 text-center text-6xl">
-              Select a name, item, or anything you'd like. Without replacement.
+              Select a name, item, or anything you&apos;d like. Without replacement.
             </span>
             <div className="flex flex-row justify-evenly">
               <div className="flex flex-col gap-y-4">
