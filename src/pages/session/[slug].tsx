@@ -1,25 +1,35 @@
 import { NextPage } from "next";
 import { api } from "~/utils/api";
 import { shuffleArray } from "~/utils/shuffle-array";
-import { Reorder } from "framer-motion";
-import { useEffect, useState } from "react";
+import { Reorder, m } from "framer-motion";
+import { BaseSyntheticEvent, SyntheticEvent, useEffect, useState } from "react";
 import { Item } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
 import LoadingList from "../../components/LoadingList";
 import ListItem from "~/components/ListItem";
+import { useRouter } from "next/router";
 
 /**
  * Comparator to sort an array of {@link Item}s in ascending order
  */
 const byAscendingOrder = (a: Item, b: Item) => a.order - b.order;
 
+/**
+ * The ID of the `input` element that accepts input to add another Item
+ * to the queue
+ */
+const NEW_QUEUE_ITEM_INPUT_NAME = "newQueueItem";
+
 const Session: NextPage = () => {
   const sessionItems = api.router.sessionItems.useQuery({ slug: "123" });
+  const router = useRouter();
 
   const [queueItems, setQueueItems] = useState<Item[]>([]);
   const [nextItem, setNextItem] = useState<Item>();
   const [wentAlreadyItems, setWentAlreadyItems] = useState<Item[]>([]);
 
   const isWhosNextDisabled = sessionItems.isLoading || queueItems.length === 0;
+
   const handleWhosNextClick = () => {
     const [newNext] = queueItems;
     const newQueueItems = queueItems.slice(1);
@@ -46,6 +56,31 @@ const Session: NextPage = () => {
     setQueueItems(newQueueItems);
     setNextItem(undefined);
     setWentAlreadyItems([]);
+  };
+
+  const handleAddToQueue = (event: BaseSyntheticEvent<SubmitEvent>) => {
+    if (!event || !event.target) return;
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const form = Object.fromEntries(formData.entries()) as {
+      [NEW_QUEUE_ITEM_INPUT_NAME]: string;
+    };
+    const queueItemToInsertOrder =
+      queueItems.length + wentAlreadyItems.length + (nextItem ? 1 : 0);
+    const queueItemToInsert: Item = {
+      name: form[NEW_QUEUE_ITEM_INPUT_NAME],
+      id: uuidv4(),
+      order: queueItemToInsertOrder,
+      list: "QUEUE",
+      updatedAt: new Date(),
+      createdAt: new Date(),
+      sessionSlug: router.query.slug as string,
+    };
+    const newQueueItems = [...queueItems, queueItemToInsert];
+    setQueueItems(newQueueItems);
+
+    // clear the input after successful submit
+    event.target.reset();
   };
 
   /**
@@ -80,6 +115,31 @@ const Session: NextPage = () => {
                     {queueItems.map((queueItem) => (
                       <ListItem key={queueItem.id} item={queueItem} />
                     ))}
+                    <form
+                      onSubmit={handleAddToQueue}
+                      className="flex flex-row justify-between rounded-lg border bg-white p-4"
+                    >
+                      <input
+                        name={NEW_QUEUE_ITEM_INPUT_NAME}
+                        placeholder="Add to queue"
+                        className="mr-2 w-full outline-none"
+                      />
+                      <button>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          className="h-6 w-6 stroke-slate-600"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </button>
+                    </form>
                   </Reorder.Group>
                 </div>
               )}
