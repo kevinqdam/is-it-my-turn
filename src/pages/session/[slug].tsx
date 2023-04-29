@@ -1,5 +1,6 @@
 import { NextPage } from "next";
 import { api } from "~/utils/api";
+import { shuffleArray } from "~/utils/shuffle-array";
 import { Reorder } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Item } from "@prisma/client";
@@ -7,7 +8,7 @@ import LoadingList from "../../components/LoadingList";
 import ListItem from "~/components/ListItem";
 
 /**
- * Comparator to sort an array of {@link Item}s by ascending order
+ * Comparator to sort an array of {@link Item}s in ascending order
  */
 const byAscendingOrder = (a: Item, b: Item) => a.order - b.order;
 
@@ -28,6 +29,12 @@ const Session: NextPage = () => {
     setQueueItems(newQueueItems);
     setNextItem(newNext);
     setWentAlreadyItems(newWentAlready);
+  };
+
+  const handleShuffleClick = () => {
+    const copyOfQueueItems = [...queueItems];
+    shuffleArray(copyOfQueueItems);
+    setQueueItems(copyOfQueueItems);
   };
 
   /**
@@ -99,13 +106,21 @@ const Session: NextPage = () => {
           </div>
         </div>
         <div className="flex flex-row justify-evenly">
-          <button
-            onClick={handleWhosNextClick}
-            disabled={isWhosNextDisabled}
-            className="rounded-lg border px-4 py-2 text-white transition enabled:bg-teal-500 enabled:hover:bg-teal-700 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
-          >
-            Who&apos;s next?
-          </button>
+          <div className="flex flex-row gap-6">
+            <button
+              onClick={handleShuffleClick}
+              className="rounded-lg border border-teal-500 px-4 py-2 text-teal-500 transition enabled:hover:bg-gray-100 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
+            >
+              Shuffle queue
+            </button>
+            <button
+              onClick={handleWhosNextClick}
+              disabled={isWhosNextDisabled}
+              className="rounded-lg border px-4 py-2 text-white transition enabled:bg-teal-500 enabled:hover:bg-teal-700 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
+            >
+              Who&apos;s next?
+            </button>
+          </div>
         </div>
       </div>
     </main>
