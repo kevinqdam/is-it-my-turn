@@ -32,9 +32,20 @@ const Session: NextPage = () => {
   };
 
   const handleShuffleClick = () => {
-    const copyOfQueueItems = [...queueItems];
-    shuffleArray(copyOfQueueItems);
-    setQueueItems(copyOfQueueItems);
+    const newQueueItems = [...queueItems];
+    shuffleArray(newQueueItems);
+    setQueueItems(newQueueItems);
+  };
+
+  const handleResetClick = () => {
+    const newQueueItems = [
+      ...queueItems,
+      ...wentAlreadyItems,
+      ...(nextItem ? [nextItem] : []),
+    ];
+    setQueueItems(newQueueItems);
+    setNextItem(undefined);
+    setWentAlreadyItems([]);
   };
 
   /**
@@ -112,6 +123,12 @@ const Session: NextPage = () => {
               className="rounded-lg border border-teal-500 px-4 py-2 text-teal-500 transition enabled:hover:bg-gray-100 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
             >
               Shuffle queue
+            </button>
+            <button
+              onClick={handleResetClick}
+              className="rounded-lg border border-teal-500 px-4 py-2 text-teal-500 transition enabled:hover:bg-gray-100 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
+            >
+              Reset
             </button>
             <button
               onClick={handleWhosNextClick}
