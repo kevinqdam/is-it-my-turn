@@ -63,7 +63,7 @@ const Session: NextPage = () => {
   }, [sessionItems.isLoading, sessionItems.isError, sessionItems.data]);
 
   return (
-    <main className="h-5/6">
+    <main className="h-5/6 pt-12">
       <div className="flex h-full flex-col justify-evenly">
         <div className="flex flex-row justify-evenly gap-2">
           <div className="flex w-full flex-col">

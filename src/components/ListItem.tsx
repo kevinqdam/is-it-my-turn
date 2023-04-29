@@ -12,7 +12,7 @@ const ListItem: React.FC<ListItemProps> = ({ item }) => {
 
   return (
     <Reorder.Item value={item} id={item.id}>
-      <span className="flex flex-row gap-4 rounded-lg border p-4 hover:cursor-grab">
+      <span className="flex flex-row gap-4 rounded-lg border p-4 bg-white hover:cursor-grab">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
