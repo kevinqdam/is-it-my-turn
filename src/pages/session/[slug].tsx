@@ -104,7 +104,7 @@ const Session: NextPage = () => {
           <div className="flex w-full flex-col">
             <h1 className="w-full text-center">In the queue</h1>
             <div className="flex w-full flex-col">
-              {(sessionItems.isLoading && <LoadingList itemCount={10} />) || (
+              {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
                 <div className="w-full p-4">
                   <Reorder.Group
                     axis="y"
@@ -147,7 +147,7 @@ const Session: NextPage = () => {
           </div>
           <div className="flex w-full flex-col">
             <h1 className="w-full text-center">Up next</h1>
-            {(sessionItems.isLoading && <LoadingList itemCount={1} />) || (
+            {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
               <div className="flex w-full flex-col p-4">
                 {nextItem && (
                   <span className="flex flex-row gap-4 rounded-lg border bg-green-100 p-4">
@@ -159,7 +159,7 @@ const Session: NextPage = () => {
           </div>
           <div className="flex w-full flex-col">
             <h1 className="w-full text-center">Went already</h1>
-            {(sessionItems.isLoading && <LoadingList itemCount={10} />) ||
+            {(sessionItems.isLoading && <LoadingList itemCount={7} />) ||
               (wentAlreadyItems.length > 0 ? (
                 <div className="flex w-full flex-col gap-4 p-4">
                   {wentAlreadyItems.map((wentAlreadyItem) => (

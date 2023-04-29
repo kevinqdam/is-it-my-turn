@@ -1,5 +1,5 @@
 const LoadingItem: React.FC = () => (
-  <div className="h-3 animate-pulse rounded bg-slate-300" />
+  <div className="p-6 animate-pulse rounded bg-slate-300" />
 );
 
 /**
