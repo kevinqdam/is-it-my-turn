@@ -7,7 +7,7 @@ const Layout: React.FC<PropsWithChildren> = ({ children }) => {
         <div>
           <div>[Logo] Is it my turn?</div>
         </div>
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-6">
           <button className="rounded-lg bg-gray-300 px-4 py-2 hover:bg-gray-400">
             Open
           </button>
