@@ -10,7 +10,7 @@ const getRandomInteger = (low: number, high: number) =>
  * Shuffles an array in place using Fisher-Yates
  */
 export const shuffleArray = (arr: unknown[]) => {
-  for (let lowIndex = 0; lowIndex < arr.length - 2; lowIndex += 1) {
+  for (let lowIndex = 0; lowIndex < arr.length - 1; lowIndex += 1) {
     const swapIndex = getRandomInteger(lowIndex, arr.length);
     const temp = arr[lowIndex];
     arr[lowIndex] = arr[swapIndex];
