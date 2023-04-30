@@ -68,16 +68,21 @@ const Session: NextPage = () => {
   };
 
   const handleAddToQueue = (event: BaseSyntheticEvent<SubmitEvent>) => {
-    if (!event || !event.target) return;
     event.preventDefault();
-    const formData = new FormData(event.target);
-    const form = Object.fromEntries(formData.entries()) as {
+    if (!event || !event.target) {
+      return;
+    }
+    const formElement = new FormData(event.target);
+    const formData = Object.fromEntries(formElement.entries()) as {
       [NEW_QUEUE_ITEM_INPUT_NAME]: string;
     };
+    if (!formData[NEW_QUEUE_ITEM_INPUT_NAME]) {
+      return;
+    }
     const queueItemToInsertOrder =
       queueItems.length + wentAlreadyItems.length + (nextItem ? 1 : 0);
     const queueItemToInsert: Item = {
-      name: form[NEW_QUEUE_ITEM_INPUT_NAME],
+      name: formData[NEW_QUEUE_ITEM_INPUT_NAME],
       id: uuidv4(),
       order: queueItemToInsertOrder,
       list: "QUEUE",
