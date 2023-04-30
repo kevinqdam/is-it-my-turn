@@ -6,7 +6,7 @@ import { BaseSyntheticEvent, useEffect, useState } from "react";
 import { Item } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import LoadingList from "../../components/LoadingList";
-import ListItem from "~/components/ListItem";
+import QueueListItem from "~/components/QueueListItem";
 import { useRouter } from "next/router";
 
 /**
@@ -127,7 +127,7 @@ const Session: NextPage = () => {
                     className="flex h-full w-full flex-col gap-4"
                   >
                     {queueItems.map((queueItem) => (
-                      <ListItem key={queueItem.id} item={queueItem} />
+                      <QueueListItem key={queueItem.id} item={queueItem} />
                     ))}
                     <form
                       onSubmit={handleAddToQueue}

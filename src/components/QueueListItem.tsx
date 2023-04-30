@@ -2,17 +2,22 @@ import { Item } from "@prisma/client";
 import { Reorder, useMotionValue } from "framer-motion";
 import useRaisedShadow from "~/hooks/use-raised-shadow";
 
-type ListItemProps = {
+type QueueListItemProps = {
   item: Item;
 };
 
-const ListItem: React.FC<ListItemProps> = ({ item }) => {
+const QueueListItem: React.FC<QueueListItemProps> = ({ item }) => {
   const y = useMotionValue(0);
   const boxShadow = useRaisedShadow(y);
 
   return (
-    <Reorder.Item value={item} id={item.id}>
-      <span className="flex flex-row gap-4 rounded-lg border p-4 bg-white hover:cursor-grab">
+    <Reorder.Item
+      style={{ y, boxShadow }}
+      className="rounded-lg"
+      value={item}
+      id={item.id}
+    >
+      <span className="flex flex-row gap-4 rounded-lg border bg-white p-4 hover:cursor-grab">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -31,4 +36,4 @@ const ListItem: React.FC<ListItemProps> = ({ item }) => {
   );
 };
 
-export default ListItem;
+export default QueueListItem;
