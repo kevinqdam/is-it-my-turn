@@ -17,7 +17,7 @@ const Layout: React.FC<PropsWithChildren> = ({ children }) => {
         </div>
       </nav>
       {children}
-      <footer className="flex flex-row justify-evenly px-8 py-64">
+      <footer className="flex flex-row justify-evenly px-8 pt-64">
         <span>© 2023 Kevin Q. Dam</span>
       </footer>
     </div>
