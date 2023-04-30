@@ -1,8 +1,8 @@
 import { NextPage } from "next";
 import { api } from "~/utils/api";
 import { shuffleArray } from "~/utils/shuffle-array";
-import { Reorder, m } from "framer-motion";
-import { BaseSyntheticEvent, SyntheticEvent, useEffect, useState } from "react";
+import { AnimatePresence, Reorder, motion } from "framer-motion";
+import { BaseSyntheticEvent, useEffect, useState } from "react";
 import { Item } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import LoadingList from "../../components/LoadingList";
@@ -158,31 +158,44 @@ const Session: NextPage = () => {
             <h1 className="w-full text-center">Up next</h1>
             {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
               <div className="flex w-full flex-col p-4">
-                {nextItem && (
-                  <span className="flex flex-row gap-4 rounded-lg border bg-green-100 p-4">
-                    {nextItem.name}
-                  </span>
-                )}
+                <AnimatePresence>
+                  {nextItem && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex flex-row gap-4 rounded-lg border bg-green-100 p-4"
+                    >
+                      {nextItem.name}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </div>
             )}
           </div>
           <div className="flex w-full flex-col">
             <h1 className="w-full text-center">Went already</h1>
-            {(sessionItems.isLoading && <LoadingList itemCount={7} />) ||
-              (wentAlreadyItems.length > 0 ? (
-                <div className="flex w-full flex-col gap-4 p-4">
-                  {wentAlreadyItems.map((wentAlreadyItem) => (
-                    <span
-                      className="flex flex-row gap-4 rounded-lg border bg-slate-200 p-4"
-                      key={wentAlreadyItem.id}
-                    >
-                      {wentAlreadyItem.name}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex w-full" />
-              ))}
+            {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
+              <AnimatePresence>
+                {wentAlreadyItems.length > 0 ? (
+                  <div className="flex w-full flex-col gap-4 p-4">
+                    {wentAlreadyItems.map((wentAlreadyItem) => (
+                      <motion.span
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex flex-row gap-4 rounded-lg border bg-slate-200 p-4"
+                        key={wentAlreadyItem.id}
+                      >
+                        {wentAlreadyItem.name}
+                      </motion.span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex w-full" />
+                )}
+              </AnimatePresence>
+            )}
           </div>
         </div>
         <div className="flex flex-row justify-evenly">
