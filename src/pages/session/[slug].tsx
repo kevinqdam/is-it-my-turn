@@ -207,13 +207,13 @@ const Session: NextPage = () => {
           <div className="flex flex-row gap-6">
             <button
               onClick={handleShuffleClick}
-              className="rounded-lg border border-teal-500 px-4 py-2 text-teal-500 transition enabled:hover:bg-gray-100 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
+              className="rounded-lg border border-teal-500 px-4 py-2 text-teal-500 transition enabled:hover:bg-teal-100 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
             >
               Shuffle queue
             </button>
             <button
               onClick={handleResetClick}
-              className="rounded-lg border border-teal-500 px-4 py-2 text-teal-500 transition enabled:hover:bg-gray-100 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
+              className="rounded-lg border border-pink-500 px-4 py-2 text-pink-500 transition enabled:hover:bg-pink-100 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
             >
               Reset
             </button>
