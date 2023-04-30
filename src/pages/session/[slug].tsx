@@ -20,8 +20,17 @@ const byAscendingOrder = (a: Item, b: Item) => a.order - b.order;
  */
 const NEW_QUEUE_ITEM_INPUT_NAME = "newQueueItem";
 
+const ONE_MINUTE_IN_MS = 60 * 1_000;
+
 const Session: NextPage = () => {
-  const sessionItems = api.router.sessionItems.useQuery({ slug: "123" });
+  const sessionItems = api.router.sessionItems.useQuery(
+    { slug: "123" },
+    {
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      staleTime: ONE_MINUTE_IN_MS,
+    }
+  );
   const router = useRouter();
 
   const [queueItems, setQueueItems] = useState<Item[]>([]);
