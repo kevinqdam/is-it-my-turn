@@ -3,7 +3,7 @@ import { LayoutGroup, motion } from "framer-motion";
 
 const Layout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
-    <div className="min-h-screen">
+    <div className="h-screen flex flex-col justify-between">
       <nav className="flex flex-row items-center justify-between px-12 py-6 text-xl">
         <div>
           <div>[Logo] Is it my turn?</div>
@@ -20,7 +20,7 @@ const Layout: React.FC<PropsWithChildren> = ({ children }) => {
       <LayoutGroup>
         {children}
         <motion.div layout>
-          <footer className="flex flex-row justify-evenly px-8 pt-64">
+          <footer className="flex flex-row justify-evenly py-12">
             <span>© 2023 Kevin Q. Dam</span>
           </footer>
         </motion.div>

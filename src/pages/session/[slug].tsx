@@ -117,14 +117,22 @@ const Session: NextPage = () => {
   };
 
   return (
-    <motion.main layout className="h-5/6 pt-12">
-      <motion.div layout className="flex h-full flex-col justify-evenly">
-        <motion.div layout className="flex flex-row justify-evenly gap-2">
-          <motion.div layout className="flex w-full flex-col">
-            <motion.h1 layout className="w-full text-center">
-              In the queue
-            </motion.h1>
-            <motion.div className="flex w-full flex-col">
+    <motion.main layout className="h-full overflow-hidden">
+      <motion.div layout className="flex h-full flex-col justify-between pt-12 gap-6 overflow-hidden">
+        <motion.div className="flex flex-row justify-evenly gap-2">
+          <motion.h1 layout className="w-full text-center">
+            In the queue
+          </motion.h1>
+          <motion.h1 layout className="w-full text-center">
+            Up next
+          </motion.h1>
+          <motion.h1 layout className="w-full text-center">
+            Went already
+          </motion.h1>
+        </motion.div>
+        <motion.div layout className="flex flex-row h-full justify-evenly gap-2 overflow-hidden p-4">
+          <motion.div layout className="flex flex-col h-full w-full overflow-hidden">
+            <motion.div className="flex flex-col h-full overflow-auto border-b">
               {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
                 <motion.div layout className="w-full p-4">
                   <Reorder.Group
@@ -140,42 +148,12 @@ const Session: NextPage = () => {
                         handleDeleteQueueItem={handleDeleteQueueItem}
                       />
                     ))}
-                    <motion.form
-                      layout
-                      onSubmit={handleAddToQueue}
-                      className="flex flex-row justify-between rounded-lg border bg-white p-4"
-                    >
-                      <motion.input
-                        layout
-                        name={NEW_QUEUE_ITEM_INPUT_NAME}
-                        placeholder="Add to queue"
-                        className="mr-2 w-full outline-none"
-                      />
-                      <motion.button layout>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          className="h-6 w-6 stroke-slate-600"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                      </motion.button>
-                    </motion.form>
                   </Reorder.Group>
                 </motion.div>
               )}
             </motion.div>
           </motion.div>
-          <motion.div layout className="flex w-full flex-col">
-            <motion.h1 layout className="w-full text-center">
-              Up next
-            </motion.h1>
+          <motion.div layout className="flex w-full flex-col border-b">
             {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
               <motion.div layout className="flex w-full flex-col p-4">
                 <AnimatePresence>
@@ -198,10 +176,7 @@ const Session: NextPage = () => {
               </motion.div>
             )}
           </motion.div>
-          <motion.div layout className="flex w-full flex-col">
-            <motion.h1 layout className="w-full text-center">
-              Went already
-            </motion.h1>
+          <motion.div layout className="h-full flex w-full flex-col overflow-auto border-b">
             {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
               <AnimatePresence>
                 {wentAlreadyItems.length > 0 ? (
@@ -225,6 +200,39 @@ const Session: NextPage = () => {
               </AnimatePresence>
             )}
           </motion.div>
+        </motion.div>
+        <motion.div className="flex flex-row justify-evenly gap-2">
+          <motion.div className="w-full pl-4 pr-10">
+            <motion.form
+              layout
+              onSubmit={handleAddToQueue}
+              className="flex flex-row justify-between rounded-lg border bg-white p-4"
+            >
+              <motion.input
+                layout
+                name={NEW_QUEUE_ITEM_INPUT_NAME}
+                placeholder="Add to queue"
+                className="mr-2 w-full outline-none"
+              />
+              <motion.button layout>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  className="h-6 w-6 stroke-slate-600"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </motion.button>
+            </motion.form>
+          </motion.div>
+          <motion.div className="w-full" />
+          <motion.div className="w-full" />
         </motion.div>
         <motion.div layout className="flex flex-row justify-evenly">
           <motion.div layout className="flex flex-row gap-6">
