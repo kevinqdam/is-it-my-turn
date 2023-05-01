@@ -37,6 +37,20 @@ const Session: NextPage = () => {
   const [nextItem, setNextItem] = useState<Item>();
   const [wentAlreadyItems, setWentAlreadyItems] = useState<Item[]>([]);
 
+  /**
+   * Set the data in the client after the query resolves successfully
+   */
+  useEffect(() => {
+    if (sessionItems.isLoading || sessionItems.isError) return;
+    const sessionItemsCopy = [...sessionItems.data];
+    sessionItemsCopy.sort(byAscendingOrder);
+    setQueueItems(sessionItemsCopy.filter((item) => item.list === "QUEUE"));
+    setNextItem(sessionItemsCopy.find((item) => item.list === "NEXT"));
+    setWentAlreadyItems(
+      sessionItemsCopy.filter((item) => item.list === "WENT")
+    );
+  }, [sessionItems.isLoading, sessionItems.isError, sessionItems.data]);
+
   const isWhosNextDisabled = sessionItems.isLoading || queueItems.length === 0;
 
   const handleWhosNextClick = () => {
@@ -46,6 +60,7 @@ const Session: NextPage = () => {
       ? [...wentAlreadyItems, nextItem]
       : [...wentAlreadyItems];
     setQueueItems(newQueueItems);
+    setNextItem(undefined);
     setNextItem(newNext);
     setWentAlreadyItems(newWentAlready);
   };
@@ -97,29 +112,21 @@ const Session: NextPage = () => {
     event.target.reset();
   };
 
-  /**
-   * Set the data in the client after the query resolves successfully
-   */
-  useEffect(() => {
-    if (sessionItems.isLoading || sessionItems.isError) return;
-    const sessionItemsCopy = [...sessionItems.data];
-    sessionItemsCopy.sort(byAscendingOrder);
-    setQueueItems(sessionItemsCopy.filter((item) => item.list === "QUEUE"));
-    setNextItem(sessionItemsCopy.find((item) => item.list === "NEXT"));
-    setWentAlreadyItems(
-      sessionItemsCopy.filter((item) => item.list === "WENT")
-    );
-  }, [sessionItems.isLoading, sessionItems.isError, sessionItems.data]);
+  const handleDeleteQueueItem = (itemToDelete: Item) => {
+    setQueueItems(queueItems.filter((item) => item.id !== itemToDelete.id));
+  };
 
   return (
-    <main className="h-5/6 pt-12">
-      <div className="flex h-full flex-col justify-evenly">
-        <div className="flex flex-row justify-evenly gap-2">
-          <div className="flex w-full flex-col">
-            <h1 className="w-full text-center">In the queue</h1>
-            <div className="flex w-full flex-col">
+    <motion.main layout className="h-5/6 pt-12">
+      <motion.div layout className="flex h-full flex-col justify-evenly">
+        <motion.div layout className="flex flex-row justify-evenly gap-2">
+          <motion.div layout className="flex w-full flex-col">
+            <motion.h1 layout className="w-full text-center">
+              In the queue
+            </motion.h1>
+            <motion.div className="flex w-full flex-col">
               {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
-                <div className="w-full p-4">
+                <motion.div layout className="w-full p-4">
                   <Reorder.Group
                     axis="y"
                     values={queueItems}
@@ -127,18 +134,24 @@ const Session: NextPage = () => {
                     className="flex h-full w-full flex-col gap-4"
                   >
                     {queueItems.map((queueItem) => (
-                      <QueueListItem key={queueItem.id} item={queueItem} />
+                      <QueueListItem
+                        key={queueItem.id}
+                        item={queueItem}
+                        handleDeleteQueueItem={handleDeleteQueueItem}
+                      />
                     ))}
-                    <form
+                    <motion.form
+                      layout
                       onSubmit={handleAddToQueue}
                       className="flex flex-row justify-between rounded-lg border bg-white p-4"
                     >
-                      <input
+                      <motion.input
+                        layout
                         name={NEW_QUEUE_ITEM_INPUT_NAME}
                         placeholder="Add to queue"
                         className="mr-2 w-full outline-none"
                       />
-                      <button>
+                      <motion.button layout>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
@@ -152,40 +165,50 @@ const Session: NextPage = () => {
                             d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
                           />
                         </svg>
-                      </button>
-                    </form>
+                      </motion.button>
+                    </motion.form>
                   </Reorder.Group>
-                </div>
+                </motion.div>
               )}
-            </div>
-          </div>
-          <div className="flex w-full flex-col">
-            <h1 className="w-full text-center">Up next</h1>
+            </motion.div>
+          </motion.div>
+          <motion.div layout className="flex w-full flex-col">
+            <motion.h1 layout className="w-full text-center">
+              Up next
+            </motion.h1>
             {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
-              <div className="flex w-full flex-col p-4">
+              <motion.div layout className="flex w-full flex-col p-4">
                 <AnimatePresence>
                   {nextItem && (
                     <motion.span
+                      layout
+                      key={nextItem.name}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
+                      transition={{
+                        duration: 0.2,
+                      }}
                       className="flex flex-row gap-4 rounded-lg border bg-green-100 p-4"
                     >
                       {nextItem.name}
                     </motion.span>
                   )}
                 </AnimatePresence>
-              </div>
+              </motion.div>
             )}
-          </div>
-          <div className="flex w-full flex-col">
-            <h1 className="w-full text-center">Went already</h1>
+          </motion.div>
+          <motion.div layout className="flex w-full flex-col">
+            <motion.h1 layout className="w-full text-center">
+              Went already
+            </motion.h1>
             {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
               <AnimatePresence>
                 {wentAlreadyItems.length > 0 ? (
-                  <div className="flex w-full flex-col gap-4 p-4">
+                  <motion.div layout className="flex w-full flex-col gap-4 p-4">
                     {wentAlreadyItems.map((wentAlreadyItem) => (
                       <motion.span
+                        layout
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -195,39 +218,42 @@ const Session: NextPage = () => {
                         {wentAlreadyItem.name}
                       </motion.span>
                     ))}
-                  </div>
+                  </motion.div>
                 ) : (
-                  <div className="flex w-full" />
+                  <motion.div layout className="flex w-full" />
                 )}
               </AnimatePresence>
             )}
-          </div>
-        </div>
-        <div className="flex flex-row justify-evenly">
-          <div className="flex flex-row gap-6">
-            <button
+          </motion.div>
+        </motion.div>
+        <motion.div layout className="flex flex-row justify-evenly">
+          <motion.div layout className="flex flex-row gap-6">
+            <motion.button
+              layout
               onClick={handleShuffleClick}
               className="rounded-lg border border-teal-500 px-4 py-2 text-teal-500 transition enabled:hover:bg-teal-100 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
             >
               Shuffle queue
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              layout
               onClick={handleResetClick}
               className="rounded-lg border border-pink-500 px-4 py-2 text-pink-500 transition enabled:hover:bg-pink-100 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
             >
               Reset
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              layout
               onClick={handleWhosNextClick}
               disabled={isWhosNextDisabled}
               className="rounded-lg border px-4 py-2 text-white transition enabled:bg-teal-500 enabled:hover:bg-teal-700 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
             >
               Who&apos;s next?
-            </button>
-          </div>
-        </div>
-      </div>
-    </main>
+            </motion.button>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    </motion.main>
   );
 };
 

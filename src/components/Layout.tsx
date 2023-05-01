@@ -1,4 +1,5 @@
 import { PropsWithChildren } from "react";
+import { LayoutGroup, motion } from "framer-motion";
 
 const Layout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
@@ -16,10 +17,14 @@ const Layout: React.FC<PropsWithChildren> = ({ children }) => {
           </button>
         </div>
       </nav>
-      {children}
-      <footer className="flex flex-row justify-evenly px-8 pt-64">
-        <span>© 2023 Kevin Q. Dam</span>
-      </footer>
+      <LayoutGroup>
+        {children}
+        <motion.div layout>
+          <footer className="flex flex-row justify-evenly px-8 pt-64">
+            <span>© 2023 Kevin Q. Dam</span>
+          </footer>
+        </motion.div>
+      </LayoutGroup>
     </div>
   );
 };
