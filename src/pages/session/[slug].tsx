@@ -84,9 +84,6 @@ const Session: NextPage = () => {
 
   const handleAddToQueue = (event: BaseSyntheticEvent<SubmitEvent>) => {
     event.preventDefault();
-    if (!event || !event.target) {
-      return;
-    }
     const formElement = new FormData(event.target);
     const formData = Object.fromEntries(formElement.entries()) as {
       [NEW_QUEUE_ITEM_INPUT_NAME]: string;
@@ -112,13 +109,26 @@ const Session: NextPage = () => {
     event.target.reset();
   };
 
+  const handleUpdateItem = (targetItemId: string, newItemName: string) => {
+    const newQueueItems = [...queueItems];
+    const itemToUpdate = newQueueItems.find((item) => item.id === targetItemId);
+    if (!itemToUpdate) {
+      return;
+    }
+    itemToUpdate.name = newItemName;
+    setQueueItems(newQueueItems);
+  };
+
   const handleDeleteQueueItem = (itemToDelete: Item) => {
     setQueueItems(queueItems.filter((item) => item.id !== itemToDelete.id));
   };
 
   return (
     <motion.main layout className="h-full overflow-hidden">
-      <motion.div layout className="flex h-full flex-col justify-between pt-12 p-4 gap-6 overflow-hidden">
+      <motion.div
+        layout
+        className="flex h-full flex-col justify-between gap-6 overflow-hidden p-4 pt-12"
+      >
         <motion.div className="flex flex-row justify-evenly gap-2">
           <motion.h1 layout className="w-full text-center">
             In the queue
@@ -130,9 +140,15 @@ const Session: NextPage = () => {
             Went already
           </motion.h1>
         </motion.div>
-        <motion.div layout className="flex flex-row h-full justify-evenly gap-10 overflow-hidden p-4 pt-0">
-          <motion.div layout className="rounded-lg border flex flex-col h-full w-full overflow-hidden">
-            <motion.div className="flex flex-col h-full overflow-auto">
+        <motion.div
+          layout
+          className="flex h-full flex-row justify-evenly gap-10 overflow-hidden p-4 pt-0"
+        >
+          <motion.div
+            layout
+            className="flex h-full w-full flex-col overflow-hidden rounded-lg border"
+          >
+            <motion.div className="flex h-full flex-col overflow-auto">
               {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
                 <motion.div layout className="w-full p-4">
                   <Reorder.Group
@@ -145,6 +161,7 @@ const Session: NextPage = () => {
                       <QueueListItem
                         key={queueItem.id}
                         item={queueItem}
+                        handleUpdateItem={handleUpdateItem}
                         handleDeleteQueueItem={handleDeleteQueueItem}
                       />
                     ))}
@@ -153,7 +170,7 @@ const Session: NextPage = () => {
               )}
             </motion.div>
           </motion.div>
-          <motion.div layout className="rounded-lg border flex w-full flex-col">
+          <motion.div layout className="flex w-full flex-col rounded-lg border">
             {(sessionItems.isLoading && <LoadingList itemCount={2} />) || (
               <motion.div layout className="flex w-full flex-col p-4">
                 <AnimatePresence>
@@ -176,7 +193,10 @@ const Session: NextPage = () => {
               </motion.div>
             )}
           </motion.div>
-          <motion.div layout className="rounded-lg border h-full flex w-full flex-col overflow-auto">
+          <motion.div
+            layout
+            className="flex h-full w-full flex-col overflow-auto rounded-lg border"
+          >
             {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
               <AnimatePresence>
                 {wentAlreadyItems.length > 0 ? (
@@ -214,7 +234,7 @@ const Session: NextPage = () => {
                 placeholder="Add to queue"
                 className="mr-2 w-full outline-none"
               />
-              <motion.button layout>
+              <motion.button type="submit" layout>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
