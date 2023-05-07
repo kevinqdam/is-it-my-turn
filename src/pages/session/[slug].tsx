@@ -118,7 +118,7 @@ const Session: NextPage = () => {
 
   return (
     <motion.main layout className="h-full overflow-hidden">
-      <motion.div layout className="flex h-full flex-col justify-between pt-12 gap-6 overflow-hidden">
+      <motion.div layout className="flex h-full flex-col justify-between pt-12 p-4 gap-6 overflow-hidden">
         <motion.div className="flex flex-row justify-evenly gap-2">
           <motion.h1 layout className="w-full text-center">
             In the queue
@@ -130,9 +130,9 @@ const Session: NextPage = () => {
             Went already
           </motion.h1>
         </motion.div>
-        <motion.div layout className="flex flex-row h-full justify-evenly gap-2 overflow-hidden p-4">
-          <motion.div layout className="flex flex-col h-full w-full overflow-hidden">
-            <motion.div className="flex flex-col h-full overflow-auto border-b">
+        <motion.div layout className="flex flex-row h-full justify-evenly gap-10 overflow-hidden p-4 pt-0">
+          <motion.div layout className="rounded-lg border flex flex-col h-full w-full overflow-hidden">
+            <motion.div className="flex flex-col h-full overflow-auto">
               {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
                 <motion.div layout className="w-full p-4">
                   <Reorder.Group
@@ -153,7 +153,7 @@ const Session: NextPage = () => {
               )}
             </motion.div>
           </motion.div>
-          <motion.div layout className="flex w-full flex-col border-b">
+          <motion.div layout className="rounded-lg border flex w-full flex-col">
             {(sessionItems.isLoading && <LoadingList itemCount={2} />) || (
               <motion.div layout className="flex w-full flex-col p-4">
                 <AnimatePresence>
@@ -176,7 +176,7 @@ const Session: NextPage = () => {
               </motion.div>
             )}
           </motion.div>
-          <motion.div layout className="h-full flex w-full flex-col overflow-auto border-b">
+          <motion.div layout className="rounded-lg border h-full flex w-full flex-col overflow-auto">
             {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
               <AnimatePresence>
                 {wentAlreadyItems.length > 0 ? (
@@ -254,7 +254,7 @@ const Session: NextPage = () => {
               layout
               onClick={handleWhosNextClick}
               disabled={isWhosNextDisabled}
-              className="rounded-lg border px-4 py-2 text-white transition enabled:bg-teal-500 enabled:hover:bg-teal-700 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
+              className="rounded-lg border px-4 py-2 text-white transition enabled:bg-teal-500 enabled:hover:bg-teal-700 disabled:bg-gray-400 disabled:hover:cursor-not-allowed"
             >
               Who&apos;s next?
             </motion.button>

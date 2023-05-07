@@ -17,6 +17,12 @@ const QueueListItem: React.FC<QueueListItemProps> = ({
   return (
     <Reorder.Item
       style={{ y, boxShadow }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{
+        duration: 0.2,
+      }}
       className="rounded-lg"
       value={item}
       id={item.id}
