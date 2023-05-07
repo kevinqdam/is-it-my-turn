@@ -154,7 +154,7 @@ const Session: NextPage = () => {
             </motion.div>
           </motion.div>
           <motion.div layout className="flex w-full flex-col border-b">
-            {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
+            {(sessionItems.isLoading && <LoadingList itemCount={2} />) || (
               <motion.div layout className="flex w-full flex-col p-4">
                 <AnimatePresence>
                   {nextItem && (

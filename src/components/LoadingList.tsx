@@ -8,7 +8,7 @@ const LoadingItem: React.FC = () => (
  */
 const LoadingList: React.FC<{ itemCount: number }> = ({ itemCount }) => {
   return (
-    <div className="flex h-full w-full flex-col justify-center gap-4 p-4">
+    <div className="flex h-full w-full flex-col gap-4 p-4">
       {Array.from({ length: itemCount }, (_, index) => (
         <LoadingItem key={`loading-list-${index}`} />
       ))}
