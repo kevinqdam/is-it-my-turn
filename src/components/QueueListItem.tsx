@@ -1,7 +1,8 @@
 import { Item } from "@prisma/client";
 import { motion, Reorder, useMotionValue } from "framer-motion";
-import { BaseSyntheticEvent, useState } from "react";
+import { BaseSyntheticEvent, ChangeEvent, useEffect, useState } from "react";
 import useRaisedShadow from "~/hooks/use-raised-shadow";
+import cn from "classnames";
 
 type QueueListItemProps = {
   item: Item;
@@ -10,6 +11,14 @@ type QueueListItemProps = {
 };
 
 const NEW_QUEUE_ITEM_NAME_INPUT_NAME = "newName";
+const QUEUE_ITEM_MAX_LENGTH = 500;
+
+const calcIsNewItemNameValid = (newItemName: string) => {
+  if (!newItemName || newItemName.length > QUEUE_ITEM_MAX_LENGTH) {
+    return false;
+  }
+  return true;
+};
 
 const QueueListItem: React.FC<QueueListItemProps> = ({
   item,
@@ -19,24 +28,43 @@ const QueueListItem: React.FC<QueueListItemProps> = ({
   const y = useMotionValue(0);
   const boxShadow = useRaisedShadow(y);
   const [isEditing, setIsEditing] = useState(false);
+  const [newItemName, setNewItemName] = useState("");
+
+  /**
+   * Reset name validity state when the client enters or exits editing mode
+   */
+  useEffect(() => {
+    setNewItemName("");
+  }, [isEditing]);
+
   const handleStartEditingItem = () => {
     setIsEditing(true);
   };
+
+  const handleItemOnChange = (event: ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    setNewItemName(event.target.value);
+  };
+
   const handleCancelEditingItem = () => {
     setIsEditing(false);
   };
+
   const handleSubmitEditItem = (event: BaseSyntheticEvent<SubmitEvent>) => {
     event.preventDefault();
     const formElement = new FormData(event.target);
     const formData = Object.fromEntries(formElement.entries()) as {
       [NEW_QUEUE_ITEM_NAME_INPUT_NAME]: string;
     };
-    if (!formData[NEW_QUEUE_ITEM_NAME_INPUT_NAME]) {
+    if (!calcIsNewItemNameValid(formData[NEW_QUEUE_ITEM_NAME_INPUT_NAME])) {
       return;
     }
     handleUpdateItem(item.id, formData[NEW_QUEUE_ITEM_NAME_INPUT_NAME]);
     setIsEditing(false);
   };
+
+  const shouldShowAddToQueueError =
+    newItemName.length > 0 && !calcIsNewItemNameValid(newItemName);
 
   return (
     <Reorder.Item
@@ -52,21 +80,38 @@ const QueueListItem: React.FC<QueueListItemProps> = ({
       id={item.id}
     >
       {isEditing ? (
-        <motion.div className="rounded-lg border p-4">
-          <motion.form
-            onBlur={handleCancelEditingItem}
-            onSubmit={handleSubmitEditItem}
+        <div className="flex flex-col gap-2">
+          <motion.div
+            className={cn(
+              "rounded-lg border p-4",
+              shouldShowAddToQueueError && "border-red-500"
+            )}
           >
-            <motion.input
-              name={NEW_QUEUE_ITEM_NAME_INPUT_NAME}
-              autoFocus
-              type="text"
-              defaultValue={item.name}
-              className="w-full outline-none"
-            />
-            <motion.button type="submit" className="hidden" />
-          </motion.form>
-        </motion.div>
+            <motion.form
+              onBlur={handleCancelEditingItem}
+              onSubmit={handleSubmitEditItem}
+            >
+              <motion.input
+                layout
+                name={NEW_QUEUE_ITEM_NAME_INPUT_NAME}
+                autoFocus
+                type="text"
+                defaultValue={item.name}
+                className={cn(
+                  "w-full outline-none",
+                  shouldShowAddToQueueError && "text-red-500"
+                )}
+                onChange={handleItemOnChange}
+              />
+              <motion.button type="submit" className="hidden" />
+            </motion.form>
+          </motion.div>
+          {shouldShowAddToQueueError && (
+            <motion.span className="text-red-500">
+              Character limit: {newItemName.length} / {QUEUE_ITEM_MAX_LENGTH}
+            </motion.span>
+          )}
+        </div>
       ) : (
         <motion.span
           layout
