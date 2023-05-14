@@ -4,9 +4,17 @@ import { z } from "zod";
 import { MAX_SESSION_NAME_INPUT_LENGTH } from "~/pages";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { SLUG_PATTERN } from "~/utils/session-name";
 
 const prisma = new PrismaClient();
+
+/**
+ * A regular expression matching snake-case strings with numbers. Specifically,
+ * it matches any string that contains only these types of characters:
+ * - English alphabet characters (lower case only)
+ * - Numeric characters
+ * - Hyphens (`-`)
+ */
+const SLUG_PATTERN = new RegExp("^[a-z0-9-]+$");
 
 export const router = createTRPCRouter({
   sessionSlugExists: publicProcedure
@@ -33,20 +41,20 @@ export const router = createTRPCRouter({
       if (name.length > MAX_SESSION_NAME_INPUT_LENGTH) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "The session name is too long."
-        })
+          message: "The session name is too long.",
+        });
       }
       if (!SLUG_PATTERN.test(slug)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "The slug is invalid",
-        })
+        });
       }
       await prisma.session.create({
         data: {
           slug,
           name,
-        }
+        },
       });
     }),
   sessionItems: publicProcedure

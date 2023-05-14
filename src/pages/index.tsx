@@ -1,7 +1,7 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import cn from "classnames";
 
 import { api } from "~/utils/api";
@@ -9,15 +9,6 @@ import { messageFromError, toSessionSlug } from "~/utils/session-name";
 import Spinner from "~/components/Spinner";
 
 export const MAX_SESSION_NAME_INPUT_LENGTH = 50;
-
-/**
- * A regular expression matching snake-case strings with numbers. Specifically,
- * it matches any string that contains only these types of characters:
- * - English alphabet characters (lower case only)
- * - Numeric characters
- * - Hyphens (`-`)
- */
-const SLUG_PATTERN = new RegExp("^[a-z0-9-]+$");
 
 const Home: NextPage = () => {
   const [hasProvidedInput, setHasProvidedInput] = useState(false);
