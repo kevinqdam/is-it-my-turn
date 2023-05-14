@@ -13,6 +13,7 @@ datasource db {
 
 model Session {
     slug      String   @id @default(uuid())
+    name      String
     items     Item[]
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
