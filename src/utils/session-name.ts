@@ -17,7 +17,7 @@ const MAX_SLUG_LENGTH = 36;
 
 const ERROR_MESSAGES = {
   InvalidCharacter:
-    "The session name contains an invalid character. Only English alphabetical characters, numerical characters, spaces, and hyphens are permitted.",
+    "The session name contains an invalid character. Only English alphabetical characters, numeric characters, spaces, and hyphens are permitted.",
   TooLong:
     "The session name produces a session slug that is too long. Please ensure the slug is at most 36 characters.",
 } as const satisfies Readonly<Record<ToSessionSlugError, string>>;
