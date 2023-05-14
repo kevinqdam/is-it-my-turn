@@ -37,7 +37,6 @@ export const toSessionSlug = (
   const errors: ToSessionSlugError[] = [];
   const slug = toSnakeCase(sessionSlugLike);
   if (!SESSION_NAME_PATTERN.test(sessionSlugLike)) {
-    console.log("huh?", sessionSlugLike);
     errors.push("InvalidCharacter");
   }
   if (slug.length > MAX_SLUG_LENGTH) {
