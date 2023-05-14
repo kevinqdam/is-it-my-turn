@@ -1,13 +1,23 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import cn from "classnames";
 
 import { api } from "~/utils/api";
 import { messageFromError, toSessionSlug } from "~/utils/session-name";
+import Spinner from "~/components/Spinner";
 
-const MAX_SESSION_NAME_INPUT_LENGTH = 50;
+export const MAX_SESSION_NAME_INPUT_LENGTH = 50;
+
+/**
+ * A regular expression matching snake-case strings with numbers. Specifically,
+ * it matches any string that contains only these types of characters:
+ * - English alphabet characters (lower case only)
+ * - Numeric characters
+ * - Hyphens (`-`)
+ */
+const SLUG_PATTERN = new RegExp("^[a-z0-9-]+$");
 
 const Home: NextPage = () => {
   const [hasProvidedInput, setHasProvidedInput] = useState(false);
@@ -17,7 +27,17 @@ const Home: NextPage = () => {
   >([]);
   const [newSlug, setNewSlug] = useState("");
 
+  const [slugExistsQuery] = api.useQueries((trpc) => {
+    return [trpc.router.sessionSlugExists({ slug: newSlug })];
+  });
+
   const shouldShowError = hasProvidedInput && sessionNameErrors.length > 0;
+  const isButtonDisabled =
+    newSlug.length === 0 ||
+    sessionNameErrors.length > 0 ||
+    slugExistsQuery.isLoading ||
+    slugExistsQuery.isError ||
+    slugExistsQuery.data.exists;
 
   const handleOnChange = (changeEvent: ChangeEvent<HTMLInputElement>) => {
     changeEvent.preventDefault();
@@ -33,6 +53,7 @@ const Home: NextPage = () => {
       return;
     }
     setNewSlug(slug);
+    setNewSessionName(changeEvent.target.value);
     setSessionNameErrors(errors);
   };
 
@@ -129,14 +150,16 @@ const Home: NextPage = () => {
                   )}
                   <div className="flex flex-row justify-evenly">
                     <button
-                      disabled={
-                        newSlug.length === 0 || sessionNameErrors.length > 0
-                      }
+                      disabled={isButtonDisabled}
                       className="rounded-lg border bg-teal-500 px-5 py-3 text-center text-4xl text-white transition hover:bg-teal-700 disabled:bg-gray-400 disabled:hover:cursor-not-allowed"
                     >
                       Get started
                     </button>
                   </div>
+                  {hasProvidedInput && slugExistsQuery.isLoading && <Spinner />}
+                  {hasProvidedInput && !slugExistsQuery.isLoading && (
+                    <span>The slug is available!</span>
+                  )}
                 </div>
               </div>
             </div>
