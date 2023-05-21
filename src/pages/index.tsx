@@ -1,16 +1,18 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, MouseEventHandler, useState } from "react";
 import cn from "classnames";
 
 import { api } from "~/utils/api";
 import { messageFromError, toSessionSlug } from "~/utils/session-name";
 import Spinner from "~/components/Spinner";
+import { useRouter } from "next/router";
 
 export const MAX_SESSION_NAME_INPUT_LENGTH = 50;
 
 const Home: NextPage = () => {
+  const nextRouter = useRouter();
+
   const [hasProvidedInput, setHasProvidedInput] = useState(false);
   const [newSessionName, setNewSessionName] = useState("");
   const [sessionNameErrors, setSessionNameErrors] = useState<
@@ -21,8 +23,22 @@ const Home: NextPage = () => {
   const [slugExistsQuery] = api.useQueries((trpc) => {
     return [trpc.router.sessionSlugExists({ slug: newSlug })];
   });
+  const createSessionMutation = api.router.createSession.useMutation();
 
   const shouldShowError = hasProvidedInput && sessionNameErrors.length > 0;
+  const shouldShowSlugAvailableMessage =
+    newSlug &&
+    hasProvidedInput &&
+    !slugExistsQuery.isLoading &&
+    !slugExistsQuery.isError &&
+    !slugExistsQuery.data.exists;
+  const shouldShowSlugTakenMessage =
+    newSlug &&
+    hasProvidedInput &&
+    !slugExistsQuery.isLoading &&
+    !slugExistsQuery.isError &&
+    slugExistsQuery.data.exists;
+
   const isButtonDisabled =
     newSlug.length === 0 ||
     sessionNameErrors.length > 0 ||
@@ -46,6 +62,17 @@ const Home: NextPage = () => {
     setNewSlug(slug);
     setNewSessionName(changeEvent.target.value);
     setSessionNameErrors(errors);
+  };
+
+  const handleOnClickGetStarted: MouseEventHandler<HTMLButtonElement> = async (
+    clickEvent
+  ) => {
+    clickEvent.preventDefault();
+    await createSessionMutation.mutateAsync({
+      slug: newSlug,
+      name: newSessionName,
+    });
+    nextRouter.push(`/session/${newSlug}`);
   };
 
   return (
@@ -97,15 +124,13 @@ const Home: NextPage = () => {
               </div>
               <div className="w-1/3">
                 <div className="flex w-full flex-col items-center justify-center gap-8">
-                  <div className="flex flex-row flex-wrap justify-evenly">
-                    <input
-                      type="text"
-                      className="w-64 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-lg text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-teal-500"
-                      placeholder="Enter your session name"
-                      onChange={handleOnChange}
-                      required
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    className="w-64 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-lg text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-teal-500"
+                    placeholder="Enter your session name"
+                    onChange={handleOnChange}
+                    required
+                  />
                   {newSlug && (
                     <div className="flex w-full flex-col gap-2">
                       <div className="flex flex-row items-center justify-center gap-2">
@@ -139,17 +164,56 @@ const Home: NextPage = () => {
                       )}
                     </div>
                   )}
-                  <div className="flex flex-row justify-evenly">
-                    <button
-                      disabled={isButtonDisabled}
-                      className="rounded-lg border bg-teal-500 px-5 py-3 text-center text-4xl text-white transition hover:bg-teal-700 disabled:bg-gray-400 disabled:hover:cursor-not-allowed"
+                  {createSessionMutation.isIdle && (
+                    <div className="flex w-full flex-col items-center justify-center gap-8">
+                      <div className="flex flex-row justify-evenly">
+                        <button
+                          disabled={isButtonDisabled}
+                          onClick={handleOnClickGetStarted}
+                          className="rounded-lg border bg-teal-500 px-5 py-3 text-center text-4xl text-white transition hover:bg-teal-700 disabled:bg-gray-400 disabled:hover:cursor-not-allowed"
+                        >
+                          Get started
+                        </button>
+                      </div>
+                      {hasProvidedInput && slugExistsQuery.isLoading && (
+                        <Spinner />
+                      )}
+                      {shouldShowSlugAvailableMessage && (
+                        <div
+                          className="border-l-4 border-teal-500 bg-teal-100 p-4 text-teal-700"
+                          role="alert"
+                        >
+                          <p className="font-bold">The slug is available!</p>
+                          <p>
+                            Click <em>Get started</em> to begin your session!
+                          </p>
+                        </div>
+                      )}
+                      {shouldShowSlugTakenMessage && (
+                        <div
+                          className="border-l-4 border-red-500 bg-red-100 p-4 text-red-700"
+                          role="alert"
+                        >
+                          <p className="font-bold">
+                            Sorry, that slug is already being used for another
+                            session!
+                          </p>
+                          <p>Please try using another session name.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {createSessionMutation.isLoading && <Spinner />}
+                  {createSessionMutation.isError && (
+                    <div
+                      className="border-l-4 border-red-500 bg-red-100 p-4 text-red-700"
+                      role="alert"
                     >
-                      Get started
-                    </button>
-                  </div>
-                  {hasProvidedInput && slugExistsQuery.isLoading && <Spinner />}
-                  {hasProvidedInput && !slugExistsQuery.isLoading && (
-                    <span>The slug is available!</span>
+                      <p className="font-bold">
+                        Sorry, something went wrong while creating your session!
+                      </p>
+                      <p>Please refresh the page and try again.</p>
+                    </div>
                   )}
                 </div>
               </div>

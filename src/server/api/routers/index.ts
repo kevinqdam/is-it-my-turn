@@ -60,46 +60,14 @@ export const router = createTRPCRouter({
   sessionItems: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ input: { slug } }) => {
-      // const items = prisma.session.findMany({
-      //   select: {
-      //     items: true,
-      //   },
-      //   where: {
-      //     slug,
-      //   },
-      // });
-
-      // simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 1_000));
-
-      return Promise.resolve([
-        {
-          name: "Foo",
-          id: "foo",
-          order: 0,
-          list: "QUEUE",
-          updatedAt: new Date(),
-          createdAt: new Date(),
-          sessionSlug: "123",
+      const items = prisma.session.findMany({
+        select: {
+          items: true,
         },
-        {
-          name: "Bar",
-          id: "bar",
-          order: 1,
-          list: "QUEUE",
-          updatedAt: new Date(),
-          createdAt: new Date(),
-          sessionSlug: "123",
+        where: {
+          slug,
         },
-        {
-          name: "Baz",
-          id: "baz",
-          order: 2,
-          list: "QUEUE",
-          updatedAt: new Date(),
-          createdAt: new Date(),
-          sessionSlug: "123",
-        },
-      ] satisfies Item[] as Item[]);
+      });
+      return await items;
     }),
 });
