@@ -2,6 +2,7 @@ import { Item, PrismaClient } from "@prisma/client";
 import { TRPCError, procedureTypes } from "@trpc/server";
 import { z } from "zod";
 import { MAX_SESSION_NAME_INPUT_LENGTH } from "~/pages";
+import { MAX_ITEM_NAME_LENGTH } from "~/pages/session/[slug]";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
@@ -15,6 +16,44 @@ const prisma = new PrismaClient();
  * - Hyphens (`-`)
  */
 const SLUG_PATTERN = new RegExp("^[a-z0-9-]+$");
+
+const queryAllSessionItems = async ({
+  input: { sessionSlug },
+}: {
+  input: { sessionSlug: string };
+}) => {
+  const items = await prisma.item.findMany({
+    select: {
+      id: true,
+      name: true,
+      session: true,
+      sessionSlug: true,
+      order: true,
+      list: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    where: {
+      sessionSlug,
+    },
+  });
+  return items;
+};
+
+const updateSessionItemOrder = async ({
+  input: { itemId, newOrder },
+}: {
+  input: { itemId: string; newOrder: number };
+}) => {
+  await prisma.item.update({
+    where: {
+      id: itemId,
+    },
+    data: {
+      order: newOrder,
+    },
+  });
+};
 
 export const router = createTRPCRouter({
   sessionSlugExists: publicProcedure
@@ -57,35 +96,76 @@ export const router = createTRPCRouter({
         },
       });
     }),
-  sessionItems: publicProcedure
-    .input(z.object({ slug: z.string() }))
-    .query(async ({ input: { slug } }) => {
-      const items = await prisma.item.findMany({
-        select: {
-          id: true,
-          name: true,
-          session: true,
-          sessionSlug: true,
-          order: true,
-          list: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-        where: {
-          sessionSlug: slug,
+  getAllSessionItems: publicProcedure
+    .input(z.object({ sessionSlug: z.string() }))
+    .query(queryAllSessionItems),
+  createSessionItem: publicProcedure
+    .input(
+      z.object({
+        name: z.string().max(MAX_ITEM_NAME_LENGTH),
+        sessionSlug: z.string().regex(SLUG_PATTERN),
+        order: z.number(),
+        list: z.enum(["QUEUE", "NEXT", "WENT"]),
+      })
+    )
+    .mutation(async ({ input: { name, sessionSlug, order, list } }) => {
+      if (name.length > MAX_SESSION_NAME_INPUT_LENGTH) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "The session name is too long.",
+        });
+      }
+      if (!SLUG_PATTERN.test(sessionSlug)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "The slug is invalid",
+        });
+      }
+      await prisma.item.create({
+        data: {
+          name,
+          sessionSlug,
+          order,
+          list,
         },
       });
-      return items;
+    }),
+  deleteSessionItem: publicProcedure
+    .input(
+      z.object({
+        itemIdToDelete: z.string(),
+        sessionSlug: z.string().regex(SLUG_PATTERN),
+      })
+    )
+    .mutation(async ({ input: { itemIdToDelete, sessionSlug } }) => {
+      const allSessionItems = await queryAllSessionItems({
+        input: { sessionSlug },
+      });
+      const itemToDelete = allSessionItems.find(
+        (item) => item.id === itemIdToDelete
+      );
+      if (!itemToDelete) {
+        return;
+      }
+      // update items with new order
+      for (const sessionItem of allSessionItems) {
+        if (sessionItem.order > itemToDelete.order) {
+          sessionItem.order -= 1;
+        }
+      }
+      // update the order of the items in the database
+      await Promise.all(
+        allSessionItems.map((item) =>
+          updateSessionItemOrder({
+            input: { itemId: item.id, newOrder: item.order },
+          })
+        )
+      );
+      // delete the item
+      await prisma.item.delete({
+        where: {
+          id: itemToDelete.id,
+        },
+      });
     }),
 });
-
-/*
-    id          String   @id @default(uuid())
-    name        String
-    session     Session  @relation(fields: [sessionSlug], references: [slug])
-    sessionSlug String
-    order       Int
-    list        List     @default(QUEUE)
-
-
-*/

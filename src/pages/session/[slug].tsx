@@ -2,12 +2,18 @@ import { NextPage } from "next";
 import { api } from "~/utils/api";
 import { shuffleArray } from "~/utils/shuffle-array";
 import { AnimatePresence, Reorder, motion } from "framer-motion";
-import { BaseSyntheticEvent, useEffect, useState } from "react";
+import {
+  BaseSyntheticEvent,
+  ChangeEventHandler,
+  useEffect,
+  useState,
+} from "react";
 import { Item } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import LoadingList from "../../components/LoadingList";
 import QueueListItem from "~/components/QueueListItem";
 import { useRouter } from "next/router";
+import cn from "classnames";
 
 /**
  * Comparator to sort an array of {@link Item}s in ascending order
@@ -20,38 +26,54 @@ const byAscendingOrder = (a: Item, b: Item) => a.order - b.order;
  */
 const NEW_QUEUE_ITEM_INPUT_NAME = "newQueueItem";
 
+/**
+ * Maximum length of a session item name
+ */
+export const MAX_ITEM_NAME_LENGTH = 500;
+
 const ONE_MINUTE_IN_MS = 60 * 1_000;
 
 const Session: NextPage = () => {
-  const sessionItems = api.router.sessionItems.useQuery(
-    { slug: "123" },
+  const router = useRouter();
+
+  const sessionItemsQuery = api.router.getAllSessionItems.useQuery(
+    { sessionSlug: router.query.slug as string },
     {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       staleTime: ONE_MINUTE_IN_MS,
+      enabled: Boolean(router.query.slug),
     }
   );
-  const router = useRouter();
+  const createSessionItemMutation = api.router.createSessionItem.useMutation();
+  const deleteSessionItemMutation = api.router.deleteSessionItem.useMutation();
 
   const [queueItems, setQueueItems] = useState<Item[]>([]);
   const [nextItem, setNextItem] = useState<Item>();
   const [wentAlreadyItems, setWentAlreadyItems] = useState<Item[]>([]);
+  const [shouldShowAddToQueueError, setShouldShowAddToQueueError] =
+    useState(false);
 
   /**
    * Set the data in the client after the query resolves successfully
    */
   useEffect(() => {
-    if (sessionItems.isLoading || sessionItems.isError) return;
-    const sessionItemsCopy = [...sessionItems.data];
+    if (sessionItemsQuery.isLoading || sessionItemsQuery.isError) return;
+    const sessionItemsCopy = [...sessionItemsQuery.data];
     sessionItemsCopy.sort(byAscendingOrder);
     setQueueItems(sessionItemsCopy.filter((item) => item.list === "QUEUE"));
     setNextItem(sessionItemsCopy.find((item) => item.list === "NEXT"));
     setWentAlreadyItems(
       sessionItemsCopy.filter((item) => item.list === "WENT")
     );
-  }, [sessionItems.isLoading, sessionItems.isError, sessionItems.data]);
+  }, [
+    sessionItemsQuery.isLoading,
+    sessionItemsQuery.isError,
+    sessionItemsQuery.data,
+  ]);
 
-  const isWhosNextDisabled = sessionItems.isLoading || queueItems.length === 0;
+  const isWhosNextDisabled =
+    sessionItemsQuery.isLoading || queueItems.length === 0;
 
   const handleWhosNextClick = () => {
     const [newNext] = queueItems;
@@ -82,19 +104,33 @@ const Session: NextPage = () => {
     setWentAlreadyItems([]);
   };
 
-  const handleAddToQueue = (event: BaseSyntheticEvent<SubmitEvent>) => {
-    event.preventDefault();
-    const formElement = new FormData(event.target);
+  const handleOnChangeAddToQueue: ChangeEventHandler<HTMLInputElement> = (
+    changeEvent
+  ) => {
+    changeEvent.preventDefault();
+    setShouldShowAddToQueueError(false);
+    if (changeEvent.target.value.length > MAX_ITEM_NAME_LENGTH) {
+      setShouldShowAddToQueueError(true);
+    }
+  };
+
+  const handleAddToQueue = (submitEvent: BaseSyntheticEvent<SubmitEvent>) => {
+    submitEvent.preventDefault();
+    const formElement = new FormData(submitEvent.target);
     const formData = Object.fromEntries(formElement.entries()) as {
       [NEW_QUEUE_ITEM_INPUT_NAME]: string;
     };
-    if (!formData[NEW_QUEUE_ITEM_INPUT_NAME]) {
+    if (
+      !formData[NEW_QUEUE_ITEM_INPUT_NAME] ||
+      formData[NEW_QUEUE_ITEM_INPUT_NAME].length > MAX_ITEM_NAME_LENGTH
+    ) {
       return;
     }
     const queueItemToInsertOrder =
       queueItems.length + wentAlreadyItems.length + (nextItem ? 1 : 0);
+    const queueItemName = formData[NEW_QUEUE_ITEM_INPUT_NAME];
     const queueItemToInsert: Item = {
-      name: formData[NEW_QUEUE_ITEM_INPUT_NAME],
+      name: queueItemName,
       id: uuidv4(),
       order: queueItemToInsertOrder,
       list: "QUEUE",
@@ -104,9 +140,15 @@ const Session: NextPage = () => {
     };
     const newQueueItems = [...queueItems, queueItemToInsert];
     setQueueItems(newQueueItems);
+    createSessionItemMutation.mutate({
+      sessionSlug: router.query.slug as string,
+      name: queueItemName,
+      order: queueItems.length + wentAlreadyItems.length + (nextItem ? 1 : 0),
+      list: "QUEUE",
+    });
 
     // clear the input after successful submit
-    event.target.reset();
+    submitEvent.target.reset();
   };
 
   const handleUpdateItem = (targetItemId: string, newItemName: string) => {
@@ -121,6 +163,10 @@ const Session: NextPage = () => {
 
   const handleDeleteQueueItem = (itemToDelete: Item) => {
     setQueueItems(queueItems.filter((item) => item.id !== itemToDelete.id));
+    deleteSessionItemMutation.mutate({
+      sessionSlug: router.query.slug as string,
+      itemIdToDelete: itemToDelete.id,
+    });
   };
 
   return (
@@ -149,7 +195,9 @@ const Session: NextPage = () => {
             className="flex h-full w-full flex-col overflow-hidden rounded-lg border"
           >
             <motion.div className="flex h-full flex-col overflow-auto">
-              {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
+              {(sessionItemsQuery.isLoading && (
+                <LoadingList itemCount={7} />
+              )) || (
                 <motion.div layout className="w-full p-4">
                   <Reorder.Group
                     axis="y"
@@ -171,7 +219,7 @@ const Session: NextPage = () => {
             </motion.div>
           </motion.div>
           <motion.div layout className="flex w-full flex-col rounded-lg border">
-            {(sessionItems.isLoading && <LoadingList itemCount={2} />) || (
+            {(sessionItemsQuery.isLoading && <LoadingList itemCount={2} />) || (
               <motion.div layout className="flex w-full flex-col p-4">
                 <AnimatePresence>
                   {nextItem && (
@@ -197,7 +245,7 @@ const Session: NextPage = () => {
             layout
             className="flex h-full w-full flex-col overflow-auto rounded-lg border"
           >
-            {(sessionItems.isLoading && <LoadingList itemCount={7} />) || (
+            {(sessionItemsQuery.isLoading && <LoadingList itemCount={7} />) || (
               <AnimatePresence>
                 {wentAlreadyItems.length > 0 ? (
                   <motion.div layout className="flex w-full flex-col gap-4 p-4">
@@ -221,18 +269,27 @@ const Session: NextPage = () => {
             )}
           </motion.div>
         </motion.div>
-        <motion.div className="flex flex-row justify-evenly gap-2">
-          <motion.div className="w-full pl-4 pr-10">
+        <motion.div className="flex flex-row items-center">
+          <motion.div className="w-1/3 pl-4 pr-6">
             <motion.form
               layout
               onSubmit={handleAddToQueue}
-              className="flex flex-row justify-between rounded-lg border bg-white p-4"
+              className={cn(
+                "flex flex-row justify-between rounded-lg border p-4",
+                shouldShowAddToQueueError
+                  ? "border-red-500 bg-red-100"
+                  : "bg-transparent"
+              )}
             >
               <motion.input
                 layout
                 name={NEW_QUEUE_ITEM_INPUT_NAME}
+                onChange={handleOnChangeAddToQueue}
                 placeholder="Add to queue"
-                className="mr-2 w-full outline-none"
+                className={cn(
+                  "mr-2 w-full outline-none",
+                  shouldShowAddToQueueError && "bg-red-100 text-red-700"
+                )}
               />
               <motion.button type="submit" layout>
                 <svg
@@ -240,7 +297,12 @@ const Session: NextPage = () => {
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
-                  className="h-6 w-6 stroke-slate-600"
+                  className={cn(
+                    "h-6 w-6",
+                    shouldShowAddToQueueError
+                      ? "stroke-red-700"
+                      : "stroke-slate-600"
+                  )}
                 >
                   <path
                     strokeLinecap="round"
@@ -251,8 +313,21 @@ const Session: NextPage = () => {
               </motion.button>
             </motion.form>
           </motion.div>
-          <motion.div className="w-full" />
-          <motion.div className="w-full" />
+          {shouldShowAddToQueueError && (
+            <motion.div
+              className="w-1/3 border-l-4 border-red-500 bg-red-100 p-4 text-red-700"
+              role="alert"
+              layout
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.p>
+                <motion.strong>The item name is too long.</motion.strong> Please
+                shorten the name of the item.
+              </motion.p>
+            </motion.div>
+          )}
         </motion.div>
         <motion.div layout className="flex flex-row justify-evenly">
           <motion.div layout className="flex flex-row gap-6">
