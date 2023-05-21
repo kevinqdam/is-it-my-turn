@@ -60,14 +60,32 @@ export const router = createTRPCRouter({
   sessionItems: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ input: { slug } }) => {
-      const items = prisma.session.findMany({
+      const items = await prisma.item.findMany({
         select: {
-          items: true,
+          id: true,
+          name: true,
+          session: true,
+          sessionSlug: true,
+          order: true,
+          list: true,
+          createdAt: true,
+          updatedAt: true,
         },
         where: {
-          slug,
+          sessionSlug: slug,
         },
       });
-      return await items;
+      return items;
     }),
 });
+
+/*
+    id          String   @id @default(uuid())
+    name        String
+    session     Session  @relation(fields: [sessionSlug], references: [slug])
+    sessionSlug String
+    order       Int
+    list        List     @default(QUEUE)
+
+
+*/
