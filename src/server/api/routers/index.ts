@@ -40,17 +40,18 @@ const queryAllSessionItems = async ({
   return items;
 };
 
-const updateSessionItemOrder = async ({
-  input: { itemId, newOrder },
+const updateSessionItem = async ({
+  input: { itemIdToUpdate, newOrder, newName },
 }: {
-  input: { itemId: string; newOrder: number };
+  input: { itemIdToUpdate: string; newOrder: number; newName: string };
 }) => {
   await prisma.item.update({
     where: {
-      id: itemId,
+      id: itemIdToUpdate,
     },
     data: {
       order: newOrder,
+      name: newName,
     },
   });
 };
@@ -130,6 +131,16 @@ export const router = createTRPCRouter({
         },
       });
     }),
+  updateSessionItem: publicProcedure
+    .input(
+      z.object({
+        itemIdToUpdate: z.string(),
+        newOrder: z.number().int(),
+        newName: z.string(),
+        sessionSlug: z.string().regex(SLUG_PATTERN),
+      })
+    )
+    .mutation(updateSessionItem),
   deleteSessionItem: publicProcedure
     .input(
       z.object({
@@ -156,8 +167,12 @@ export const router = createTRPCRouter({
       // update the order of the items in the database
       await Promise.all(
         allSessionItems.map((item) =>
-          updateSessionItemOrder({
-            input: { itemId: item.id, newOrder: item.order },
+          updateSessionItem({
+            input: {
+              itemIdToUpdate: item.id,
+              newOrder: item.order,
+              newName: item.name,
+            },
           })
         )
       );

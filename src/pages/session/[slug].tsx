@@ -46,6 +46,7 @@ const Session: NextPage = () => {
     }
   );
   const createSessionItemMutation = api.router.createSessionItem.useMutation();
+  const updateSessionItemMutation = api.router.updateSessionItem.useMutation();
   const deleteSessionItemMutation = api.router.deleteSessionItem.useMutation();
 
   const [queueItems, setQueueItems] = useState<Item[]>([]);
@@ -159,6 +160,12 @@ const Session: NextPage = () => {
     }
     itemToUpdate.name = newItemName;
     setQueueItems(newQueueItems);
+    updateSessionItemMutation.mutate({
+      itemIdToUpdate: itemToUpdate.id,
+      sessionSlug: router.query.slug as string,
+      newName: newItemName,
+      newOrder: itemToUpdate.order,
+    });
   };
 
   const handleDeleteQueueItem = (itemToDelete: Item) => {
