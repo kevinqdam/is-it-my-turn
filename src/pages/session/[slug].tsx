@@ -77,15 +77,33 @@ const Session: NextPage = () => {
     sessionItemsQuery.isLoading || queueItems.length === 0;
 
   const handleWhosNextClick = () => {
-    const [newNext] = queueItems;
+    const [newNextItem] = queueItems;
     const newQueueItems = queueItems.slice(1);
-    const newWentAlready = nextItem
+    const newWentAlreadyItems = nextItem
       ? [...wentAlreadyItems, nextItem]
       : [...wentAlreadyItems];
+    const currentNextItem = nextItem;
     setQueueItems(newQueueItems);
-    setNextItem(undefined);
-    setNextItem(newNext);
-    setWentAlreadyItems(newWentAlready);
+    setNextItem(newNextItem);
+    setWentAlreadyItems(newWentAlreadyItems);
+    if (currentNextItem) {
+      updateSessionItemMutation.mutate({
+        sessionSlug: router.query.slug as string,
+        itemIdToUpdate: currentNextItem.id,
+        newList: "WENT",
+        newOrder: currentNextItem.order,
+        newName: currentNextItem.name,
+      });
+    }
+    if (newNextItem) {
+      updateSessionItemMutation.mutate({
+        sessionSlug: router.query.slug as string,
+        itemIdToUpdate: newNextItem.id,
+        newList: "NEXT",
+        newOrder: newNextItem.order,
+        newName: newNextItem.name,
+      });
+    }
   };
 
   const handleShuffleClick = () => {
@@ -116,13 +134,13 @@ const Session: NextPage = () => {
     setQueueItems(newQueueItems);
     setNextItem(undefined);
     setWentAlreadyItems([]);
-    newQueueItems.forEach((item) => {
+    newQueueItems.forEach((item, index) => {
       updateSessionItemMutation.mutate({
         sessionSlug: router.query.slug as string,
         itemIdToUpdate: item.id,
         newList: "QUEUE",
         newName: item.name,
-        newOrder: item.order,
+        newOrder: index,
       });
     });
   };
