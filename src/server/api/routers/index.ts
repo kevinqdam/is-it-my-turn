@@ -1,4 +1,4 @@
-import { Item, PrismaClient } from "@prisma/client";
+import { Item, List, PrismaClient } from "@prisma/client";
 import { TRPCError, procedureTypes } from "@trpc/server";
 import { z } from "zod";
 import { MAX_SESSION_NAME_INPUT_LENGTH } from "~/pages";
@@ -41,9 +41,14 @@ const queryAllSessionItems = async ({
 };
 
 const updateSessionItem = async ({
-  input: { itemIdToUpdate, newOrder, newName },
+  input: { itemIdToUpdate, newOrder, newName, newList },
 }: {
-  input: { itemIdToUpdate: string; newOrder: number; newName: string };
+  input: {
+    itemIdToUpdate: string;
+    newOrder: number;
+    newName: string;
+    newList: List;
+  };
 }) => {
   await prisma.item.update({
     where: {
@@ -52,6 +57,7 @@ const updateSessionItem = async ({
     data: {
       order: newOrder,
       name: newName,
+      list: newList,
     },
   });
 };
@@ -106,7 +112,7 @@ export const router = createTRPCRouter({
         name: z.string().max(MAX_ITEM_NAME_LENGTH),
         sessionSlug: z.string().regex(SLUG_PATTERN),
         order: z.number(),
-        list: z.enum(["QUEUE", "NEXT", "WENT"]),
+        list: z.enum([List.QUEUE, List.NEXT, List.WENT]),
       })
     )
     .mutation(async ({ input: { name, sessionSlug, order, list } }) => {
@@ -137,6 +143,7 @@ export const router = createTRPCRouter({
         itemIdToUpdate: z.string(),
         newOrder: z.number().int(),
         newName: z.string(),
+        newList: z.enum([List.QUEUE, List.NEXT, List.WENT]),
         sessionSlug: z.string().regex(SLUG_PATTERN),
       })
     )
@@ -172,6 +179,7 @@ export const router = createTRPCRouter({
               itemIdToUpdate: item.id,
               newOrder: item.order,
               newName: item.name,
+              newList: item.list,
             },
           })
         )

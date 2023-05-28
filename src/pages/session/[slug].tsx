@@ -92,6 +92,19 @@ const Session: NextPage = () => {
     const newQueueItems = [...queueItems];
     shuffleArray(newQueueItems);
     setQueueItems(newQueueItems);
+    const minimumOrder = Math.min(
+      ...newQueueItems.map((item: Item) => item.order)
+    );
+    newQueueItems.forEach((item, index) => {
+      const newOrder = minimumOrder + index;
+      updateSessionItemMutation.mutate({
+        sessionSlug: router.query.slug as string,
+        itemIdToUpdate: item.id,
+        newList: item.list,
+        newName: item.name,
+        newOrder,
+      });
+    });
   };
 
   const handleResetClick = () => {
@@ -103,6 +116,15 @@ const Session: NextPage = () => {
     setQueueItems(newQueueItems);
     setNextItem(undefined);
     setWentAlreadyItems([]);
+    newQueueItems.forEach((item) => {
+      updateSessionItemMutation.mutate({
+        sessionSlug: router.query.slug as string,
+        itemIdToUpdate: item.id,
+        newList: "QUEUE",
+        newName: item.name,
+        newOrder: item.order,
+      });
+    });
   };
 
   const handleOnChangeAddToQueue: ChangeEventHandler<HTMLInputElement> = (
@@ -165,6 +187,7 @@ const Session: NextPage = () => {
       sessionSlug: router.query.slug as string,
       newName: newItemName,
       newOrder: itemToUpdate.order,
+      newList: itemToUpdate.list,
     });
   };
 
