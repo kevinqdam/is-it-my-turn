@@ -201,11 +201,24 @@ const Session: NextPage = () => {
     itemToUpdate.name = newItemName;
     setQueueItems(newQueueItems);
     updateSessionItemMutation.mutate({
-      itemIdToUpdate: itemToUpdate.id,
       sessionSlug: router.query.slug as string,
+      itemIdToUpdate: itemToUpdate.id,
       newName: newItemName,
       newOrder: itemToUpdate.order,
       newList: itemToUpdate.list,
+    });
+  };
+
+  const handleReorderQueue = (queueItems: Item[]) => {
+    setQueueItems(queueItems);
+    queueItems.forEach((item, index) => {
+      updateSessionItemMutation.mutate({
+        sessionSlug: router.query.slug as string,
+        itemIdToUpdate: item.id,
+        newName: item.name,
+        newOrder: index,
+        newList: item.list,
+      });
     });
   };
 
@@ -250,7 +263,7 @@ const Session: NextPage = () => {
                   <Reorder.Group
                     axis="y"
                     values={queueItems}
-                    onReorder={setQueueItems}
+                    onReorder={handleReorderQueue}
                     className="flex h-full w-full flex-col gap-4"
                   >
                     {queueItems.map((queueItem) => (
