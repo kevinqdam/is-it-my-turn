@@ -32,11 +32,11 @@ const toSnakeCase = (sessionName: string) => {
 };
 
 export const toSessionSlug = (
-  sessionSlugLike: string
+  sessionNameLike: string
 ): { errors: ToSessionSlugError[]; slug: string } => {
   const errors: ToSessionSlugError[] = [];
-  const slug = toSnakeCase(sessionSlugLike);
-  if (!SESSION_NAME_PATTERN.test(sessionSlugLike)) {
+  const slug = toSnakeCase(sessionNameLike);
+  if (!SESSION_NAME_PATTERN.test(sessionNameLike)) {
     errors.push("InvalidCharacter");
   }
   if (slug.length > MAX_SLUG_LENGTH) {

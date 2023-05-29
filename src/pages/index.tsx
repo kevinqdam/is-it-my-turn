@@ -1,12 +1,13 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import { ChangeEvent, MouseEventHandler, useState } from "react";
+import { ChangeEvent, MouseEventHandler, useEffect, useState } from "react";
 import cn from "classnames";
 
 import { api } from "~/utils/api";
 import { messageFromError, toSessionSlug } from "~/utils/session-name";
 import Spinner from "~/components/Spinner";
 import { useRouter } from "next/router";
+import { useDebouncedCallback } from "use-debounce";
 
 export const MAX_SESSION_NAME_INPUT_LENGTH = 50;
 
@@ -18,29 +19,51 @@ const Home: NextPage = () => {
   const [sessionNameErrors, setSessionNameErrors] = useState<
     ReturnType<typeof toSessionSlug>["errors"]
   >([]);
-  const [newSlug, setNewSlug] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [newSlugDisplayedToClient, setNewSlugDisplayedToClient] = useState("");
+  const [newSlugToCheckExists, setNewSlugToCheckExists] = useState("");
+
+  const setNewSlugToCheckExistsDebounced = useDebouncedCallback(
+    (nextNewSlug: string) => {
+      setIsTyping(false);
+      setNewSlugToCheckExists(nextNewSlug);
+    },
+    500
+  );
+
+  useEffect(() => {
+    setNewSlugToCheckExistsDebounced(newSlugDisplayedToClient);
+  }, [newSlugDisplayedToClient, setNewSlugToCheckExistsDebounced]);
 
   const [slugExistsQuery] = api.useQueries((trpc) => {
-    return [trpc.router.sessionSlugExists({ slug: newSlug })];
+    return [trpc.router.sessionSlugExists({ slug: newSlugToCheckExists })];
   });
   const createSessionMutation = api.router.createSession.useMutation();
 
-  const shouldShowError = hasProvidedInput && sessionNameErrors.length > 0;
+  const shouldShowError =
+    hasProvidedInput && !isTyping && sessionNameErrors.length > 0;
+
   const shouldShowSlugAvailableMessage =
-    newSlug &&
+    !isTyping &&
+    newSlugToCheckExists &&
+    newSlugDisplayedToClient === newSlugToCheckExists &&
     hasProvidedInput &&
     !slugExistsQuery.isLoading &&
     !slugExistsQuery.isError &&
     !slugExistsQuery.data.exists;
+
   const shouldShowSlugTakenMessage =
-    newSlug &&
+    !isTyping &&
+    newSlugToCheckExists &&
     hasProvidedInput &&
     !slugExistsQuery.isLoading &&
     !slugExistsQuery.isError &&
     slugExistsQuery.data.exists;
 
   const isButtonDisabled =
-    newSlug.length === 0 ||
+    isTyping ||
+    newSlugToCheckExists.length === 0 ||
+    newSlugDisplayedToClient !== newSlugToCheckExists ||
     sessionNameErrors.length > 0 ||
     slugExistsQuery.isLoading ||
     slugExistsQuery.isError ||
@@ -59,7 +82,8 @@ const Home: NextPage = () => {
       );
       return;
     }
-    setNewSlug(slug);
+    setIsTyping(true);
+    setNewSlugDisplayedToClient(slug);
     setNewSessionName(changeEvent.target.value);
     setSessionNameErrors(errors);
   };
@@ -69,10 +93,10 @@ const Home: NextPage = () => {
   ) => {
     clickEvent.preventDefault();
     await createSessionMutation.mutateAsync({
-      slug: newSlug,
+      slug: newSlugToCheckExists,
       name: newSessionName,
     });
-    nextRouter.push(`/session/${newSlug}`);
+    nextRouter.push(`/session/${newSlugToCheckExists}`);
   };
 
   return (
@@ -151,7 +175,7 @@ const Home: NextPage = () => {
                     onChange={handleOnChange}
                     required
                   />
-                  {newSlug && (
+                  {newSlugDisplayedToClient && (
                     <div className="flex w-full flex-col gap-2">
                       <div className="flex flex-row items-center justify-center gap-2">
                         <strong
@@ -170,7 +194,7 @@ const Home: NextPage = () => {
                               : "bg-gray-200 text-gray-600"
                           )}
                         >
-                          {newSlug}
+                          {newSlugDisplayedToClient}
                         </code>
                       </div>
                       {sessionNameErrors.length > 0 && (
@@ -195,9 +219,10 @@ const Home: NextPage = () => {
                           Get started
                         </button>
                       </div>
-                      {hasProvidedInput && slugExistsQuery.isLoading && (
-                        <Spinner />
-                      )}
+                      {(isTyping && <Spinner />) ||
+                        (hasProvidedInput && slugExistsQuery.isLoading && (
+                          <Spinner />
+                        ))}
                       {shouldShowSlugAvailableMessage && (
                         <div
                           className="border-l-4 border-teal-500 bg-teal-100 p-4 text-teal-700"
