@@ -248,13 +248,13 @@ const Session: NextPage = () => {
         className="flex h-full flex-col justify-between gap-6 overflow-hidden p-4 pt-12"
       >
         <motion.div className="flex flex-row justify-evenly gap-2">
-          <motion.h1 layout className="w-full text-center">
+          <motion.h1 layout className="w-full text-center text-2xl font-bold">
             In the queue
           </motion.h1>
-          <motion.h1 layout className="w-full text-center">
+          <motion.h1 layout className="w-full text-center text-2xl font-bold">
             Up next
           </motion.h1>
-          <motion.h1 layout className="w-full text-center">
+          <motion.h1 layout className="w-full text-center text-2xl font-bold">
             Went already
           </motion.h1>
         </motion.div>
