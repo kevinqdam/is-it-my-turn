@@ -15,6 +15,11 @@ const SESSION_NAME_PATTERN = new RegExp("^[a-zA-Z0-9- ]+$");
 
 const MAX_SLUG_LENGTH = 36;
 
+/**
+ * Maximum length of a session item name
+ */
+export const MAX_ITEM_NAME_LENGTH = 500;
+
 const ERROR_MESSAGES = {
   InvalidCharacter:
     "The session name contains an invalid character. Only English alphabetical characters, numeric characters, spaces, and hyphens are permitted.",

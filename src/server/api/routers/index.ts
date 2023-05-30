@@ -1,10 +1,10 @@
-import { Item, List, PrismaClient } from "@prisma/client";
-import { TRPCError, procedureTypes } from "@trpc/server";
+import { List, PrismaClient } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { MAX_SESSION_NAME_INPUT_LENGTH } from "~/pages";
-import { MAX_ITEM_NAME_LENGTH } from "~/pages/session/[slug]";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { MAX_ITEM_NAME_LENGTH } from '~/utils/session-name';
 
 const prisma = new PrismaClient();
 

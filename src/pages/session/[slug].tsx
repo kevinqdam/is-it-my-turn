@@ -1,4 +1,4 @@
-import { NextPage } from "next";
+import { GetServerSideProps, NextPage } from "next";
 import { api } from "~/utils/api";
 import { shuffleArray } from "~/utils/shuffle-array";
 import { AnimatePresence, Reorder, motion } from "framer-motion";
@@ -14,6 +14,9 @@ import LoadingList from "../../components/LoadingList";
 import QueueListItem from "~/components/QueueListItem";
 import { useRouter } from "next/router";
 import cn from "classnames";
+import { prisma } from "~/server/db";
+import { appRouter } from "~/server/api/root";
+import { MAX_ITEM_NAME_LENGTH } from '~/utils/session-name';
 
 /**
  * Comparator to sort an array of {@link Item}s in ascending order
@@ -26,12 +29,20 @@ const byAscendingOrder = (a: Item, b: Item) => a.order - b.order;
  */
 const NEW_QUEUE_ITEM_INPUT_NAME = "newQueueItem";
 
-/**
- * Maximum length of a session item name
- */
-export const MAX_ITEM_NAME_LENGTH = 500;
-
 const ONE_MINUTE_IN_MS = 60 * 1_000;
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const apiCaller = appRouter.createCaller({ prisma });
+  const { exists: doesSlugExist } = await apiCaller.router.sessionSlugExists({
+    slug: context?.params?.slug as string,
+  });
+  if (!doesSlugExist) {
+    return {
+      notFound: true,
+    };
+  }
+  return { props: {} };
+};
 
 const Session: NextPage = () => {
   const router = useRouter();
