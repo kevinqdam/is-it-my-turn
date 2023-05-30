@@ -1,5 +1,5 @@
 <svg data-v-423bf9ae="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" class="iconLeft">
-  <g data-v-423bf9ae="" id="3cdb84ee-eaa7-49f9-b76f-cd1fa80bee80" transform="matrix(6,0,0,6,-12,-24)" stroke="none" fill="#ec4899">
+  <g data-v-423bf9ae="" id="3cdb84ee-eaa7-49f9-b76f-cd1fa80bee80" transform="translate(0,15) matrix(6,0,0,6,-12,-24)" stroke="none" fill="#ec4899">
     <path d="M15 4l7 7-7 7v-4C3 14 2 19 2 19S3 8 15 8V4z"></path>
   </g>
 </svg>
