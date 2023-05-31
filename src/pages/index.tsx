@@ -48,6 +48,7 @@ const Home: NextPage = () => {
     newSlugToCheckExists &&
     newSlugDisplayedToClient === newSlugToCheckExists &&
     hasProvidedInput &&
+    !shouldShowError &&
     !slugExistsQuery.isLoading &&
     !slugExistsQuery.isError &&
     !slugExistsQuery.data.exists;
@@ -132,13 +133,13 @@ const Home: NextPage = () => {
             <h1 className="px-2 text-center text-5xl font-bold md:text-6xl lg:text-7xl xl:text-8xl">
               Never forget who&apos;s next again.
             </h1>
-            <div className="flex flex-col gap-2 text-center text-3xl md:text-4xl lg:text-5xl xl:text-6xl lg:px-64">
+            <div className="flex flex-col gap-2 text-center text-3xl md:text-4xl lg:px-64 lg:text-5xl xl:text-6xl">
               <span className="text-gray-700">
                 Select a name, item, or anything you&apos;d like.
               </span>
               <span className="text-teal-500">Without replacement.</span>
             </div>
-            <div className="flex flex-col gap-16 lg:justify-evenly lg:flex-row">
+            <div className="flex flex-col gap-16 lg:flex-row lg:justify-evenly">
               <div className="mx-16 flex flex-col gap-y-4">
                 <span className="text-4xl font-semibold">Perfect for...</span>
                 <ul className="flex flex-col gap-2 text-2xl">
@@ -203,7 +204,7 @@ const Home: NextPage = () => {
                         </code>
                       </div>
                       {sessionNameErrors.length > 0 && (
-                        <ul className="ml-4 list-disc whitespace-pre-line text-red-500">
+                        <ul className="ml-4 list-disc whitespace-pre-line px-2 text-red-500 lg:px-0">
                           {sessionNameErrors.map((errorType) => (
                             <li key={errorType}>
                               {messageFromError(errorType)}
@@ -240,15 +241,17 @@ const Home: NextPage = () => {
                         </div>
                       )}
                       {shouldShowSlugTakenMessage && (
-                        <div
-                          className="border-l-4 border-red-500 bg-red-100 p-4 text-red-700"
-                          role="alert"
-                        >
-                          <p className="font-bold">
-                            Sorry, that slug is already being used for another
-                            session!
-                          </p>
-                          <p>Please try using another session name.</p>
+                        <div className="px-4">
+                          <div
+                            className="border-l-4 border-red-500 bg-red-100 p-4 text-red-700"
+                            role="alert"
+                          >
+                            <p className="font-bold">
+                              Sorry, that slug is already being used for another
+                              session!
+                            </p>
+                            <p>Please try using another session name.</p>
+                          </div>
                         </div>
                       )}
                     </div>
