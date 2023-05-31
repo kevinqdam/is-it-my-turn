@@ -133,8 +133,7 @@ const Home: NextPage = () => {
               Never forget who&apos;s next again.
             </h1>
             <span className="px-64 text-center text-6xl text-gray-700">
-              Select a name, item, or anything you&apos;d like. Without
-              replacement.
+              Select a name, item, or anything you&apos;d like. <span className="text-teal-500">Without replacement.</span>
             </span>
             <div className="flex flex-row justify-evenly">
               <div className="mx-16 flex flex-col gap-y-4">

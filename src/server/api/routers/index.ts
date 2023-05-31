@@ -4,7 +4,7 @@ import { z } from "zod";
 import { MAX_SESSION_NAME_INPUT_LENGTH } from "~/pages";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { MAX_ITEM_NAME_LENGTH } from '~/utils/session-name';
+import { MAX_ITEM_NAME_LENGTH } from "~/utils/session-name";
 
 const prisma = new PrismaClient();
 
@@ -72,9 +72,9 @@ export const router = createTRPCRouter({
         },
       });
       if (!maybeSession) {
-        return { exists: false };
+        return { exists: false, name: "" };
       }
-      return { exists: true };
+      return { exists: true, name: maybeSession.name };
     }),
   createSession: publicProcedure
     .input(

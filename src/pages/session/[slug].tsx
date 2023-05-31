@@ -16,7 +16,8 @@ import { useRouter } from "next/router";
 import cn from "classnames";
 import { prisma } from "~/server/db";
 import { appRouter } from "~/server/api/root";
-import { MAX_ITEM_NAME_LENGTH } from '~/utils/session-name';
+import { MAX_ITEM_NAME_LENGTH } from "~/utils/session-name";
+import Head from "next/head";
 
 /**
  * Comparator to sort an array of {@link Item}s in ascending order
@@ -33,18 +34,19 @@ const ONE_MINUTE_IN_MS = 60 * 1_000;
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const apiCaller = appRouter.createCaller({ prisma });
-  const { exists: doesSlugExist } = await apiCaller.router.sessionSlugExists({
-    slug: context?.params?.slug as string,
-  });
+  const { exists: doesSlugExist, name } =
+    await apiCaller.router.sessionSlugExists({
+      slug: context?.params?.slug as string,
+    });
   if (!doesSlugExist) {
     return {
       notFound: true,
     };
   }
-  return { props: {} };
+  return { props: { name } };
 };
 
-const Session: NextPage = () => {
+const Session: NextPage<{ name: string }> = ({ name }) => {
   const router = useRouter();
 
   const sessionItemsQuery = api.router.getAllSessionItems.useQuery(
@@ -243,6 +245,31 @@ const Session: NextPage = () => {
 
   return (
     <motion.main layout className="h-full overflow-hidden">
+      <Head>
+        <title>{name}</title>
+        <link rel="icon" href="/favicon.ico" />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/apple-touch-icon.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/favicon-32x32.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/favicon-16x16.png"
+        />
+        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#ec4899" />
+        <meta name="msapplication-TileColor" content="#da532c" />
+        <meta name="theme-color" content="#ffffff" />
+      </Head>
       <motion.div
         layout
         className="flex h-full flex-col justify-between gap-6 overflow-hidden p-4 pt-12"
