@@ -1,10 +1,15 @@
 import React from "react";
+import cn from 'classnames';
 
-const Logo: React.FC = () => {
+type LogoProps = {
+  className: string;
+};
+
+const Logo: React.FC<LogoProps> = ({ className }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      className="iconLeft w-1/5"
+      className={cn("iconLeft", className)}
       viewBox="0 0 519 90"
     >
       <path
