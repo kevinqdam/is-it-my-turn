@@ -7,14 +7,14 @@ const Layout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
     <div className="flex h-screen flex-col justify-between">
       <nav className="flex flex-row items-center justify-between px-12 py-6 text-xl">
-        <Link href="/" className="w-full h-full">
-          <Logo className="h-12" />
+        <Link href="/" className="h-full w-full">
+          <Logo className="h-6 md:h-8 lg:h-10 xl:h-12" />
         </Link>
-        <div>
-          <Link href="/about">
-            <span className="rounded-lg px-4 py-2 hover:bg-gray-200 transition">About</span>
-          </Link>
-        </div>
+        <Link href="/about">
+          <span className="rounded-lg px-4 py-2 transition hover:bg-gray-200">
+            About
+          </span>
+        </Link>
       </nav>
       <LayoutGroup>
         {children}

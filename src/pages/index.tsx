@@ -128,14 +128,17 @@ const Home: NextPage = () => {
       </Head>
       <main className="pb-32 pt-8">
         <div className="flex flex-row justify-evenly">
-          <div className="flex flex-col gap-24">
-            <h1 className="text-center text-8xl font-bold">
+          <div className="flex flex-col gap-10 md:gap-16 lg:gap-20 xl:gap-24">
+            <h1 className="px-2 text-center text-5xl font-bold md:text-6xl lg:text-7xl xl:text-8xl">
               Never forget who&apos;s next again.
             </h1>
-            <span className="px-64 text-center text-6xl text-gray-700">
-              Select a name, item, or anything you&apos;d like. <span className="text-teal-500">Without replacement.</span>
-            </span>
-            <div className="flex flex-row justify-evenly">
+            <div className="flex flex-col gap-2 text-center text-3xl md:text-4xl lg:text-5xl xl:text-6xl lg:px-64">
+              <span className="text-gray-700">
+                Select a name, item, or anything you&apos;d like.
+              </span>
+              <span className="text-teal-500">Without replacement.</span>
+            </div>
+            <div className="flex flex-col gap-16 lg:justify-evenly lg:flex-row">
               <div className="mx-16 flex flex-col gap-y-4">
                 <span className="text-4xl font-semibold">Perfect for...</span>
                 <ul className="flex flex-col gap-2 text-2xl">
@@ -160,13 +163,15 @@ const Home: NextPage = () => {
                   <li>
                     <span className="flex flex-row items-center gap-4">
                       <div className="text-4xl">🗣️</div>
-                      <div className="text-gray-700">Rotating stand-up leaders</div>
+                      <div className="text-gray-700">
+                        Rotating stand-up leaders
+                      </div>
                     </span>
                   </li>
                   <li className="pt-4 italic text-gray-700">...and more!</li>
                 </ul>
               </div>
-              <div className="w-1/3">
+              <div className="lg:w-1/3">
                 <div className="flex w-full flex-col items-center justify-center gap-8">
                   <input
                     type="text"
