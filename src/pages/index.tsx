@@ -129,42 +129,42 @@ const Home: NextPage = () => {
       <main className="pb-32 pt-8">
         <div className="flex flex-row justify-evenly">
           <div className="flex flex-col gap-24">
-            <h1 className="text-center text-8xl">
+            <h1 className="text-center text-8xl font-bold">
               Never forget who&apos;s next again.
             </h1>
-            <span className="px-64 text-center text-6xl">
+            <span className="px-64 text-center text-6xl text-gray-700">
               Select a name, item, or anything you&apos;d like. Without
               replacement.
             </span>
             <div className="flex flex-row justify-evenly">
               <div className="mx-16 flex flex-col gap-y-4">
-                <span className="text-4xl">Perfect for...</span>
+                <span className="text-4xl font-semibold">Perfect for...</span>
                 <ul className="flex flex-col gap-2 text-2xl">
                   <li>
                     <span className="flex flex-row items-center gap-4">
                       <div className="text-4xl">🎲</div>
-                      <div>Board game night</div>
+                      <div className="text-gray-700">Board game night</div>
                     </span>
                   </li>
                   <li>
                     <span className="flex flex-row items-center gap-4">
                       <div className="text-4xl">🍱</div>
-                      <div>Meal planning</div>
+                      <div className="text-gray-700">Meal planning</div>
                     </span>
                   </li>
                   <li>
                     <span className="flex flex-row items-center gap-4">
                       <div className="text-4xl">🧹</div>
-                      <div>Chore duty</div>
+                      <div className="text-gray-700">Chore duty</div>
                     </span>
                   </li>
                   <li>
                     <span className="flex flex-row items-center gap-4">
                       <div className="text-4xl">🗣️</div>
-                      <div>Rotating stand-up leaders</div>
+                      <div className="text-gray-700">Rotating stand-up leaders</div>
                     </span>
                   </li>
-                  <li className="pt-4">...and more!</li>
+                  <li className="pt-4 italic text-gray-700">...and more!</li>
                 </ul>
               </div>
               <div className="w-1/3">
