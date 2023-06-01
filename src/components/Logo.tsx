@@ -10,7 +10,7 @@ const Logo: React.FC<LogoProps> = ({ className }) => {
     <>
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className={cn("iconLeft hidden md:block", className)}
+        className={cn("iconLeft hidden sm:block", className)}
         viewBox="0 0 519 90"
       >
         <path
@@ -28,7 +28,7 @@ const Logo: React.FC<LogoProps> = ({ className }) => {
       {/* Mobile */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className={cn("iconLeft md:hidden", className)}
+        className={cn("iconLeft sm:hidden", className)}
         viewBox="0 0 120 120"
       >
         <path

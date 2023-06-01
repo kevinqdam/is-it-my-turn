@@ -139,8 +139,8 @@ const Home: NextPage = () => {
               </span>
               <span className="text-teal-500">Without replacement.</span>
             </div>
-            <div className="flex flex-col gap-16 lg:flex-row lg:justify-evenly">
-              <div className="mx-16 flex flex-col gap-y-4">
+            <div className="flex flex-col items-center gap-16 md:flex-row md:justify-evenly">
+              <div className="px-16 flex flex-col gap-y-4">
                 <span className="text-4xl font-semibold">Perfect for...</span>
                 <ul className="flex flex-col gap-2 text-2xl">
                   <li>
@@ -172,7 +172,7 @@ const Home: NextPage = () => {
                   <li className="pt-4 italic text-gray-700">...and more!</li>
                 </ul>
               </div>
-              <div className="lg:w-1/3">
+              <div className="mx-8">
                 <div className="flex w-full flex-col items-center justify-center gap-8">
                   <input
                     type="text"
