@@ -53,7 +53,7 @@ const About: NextPage = () => {
         <meta name="theme-color" content="#ffffff" />
       </Head>
       <main>
-        <div className="flex h-full w-full flex-row justify-evenly">
+        <div className="flex flex-col gap-16 items-center h-full w-full pt-8 px-16 xl:flex-row xl:justify-evenly">
           <div>
             <h1 className="text-4xl font-semibold">
               This app is for you if...
@@ -89,7 +89,7 @@ const About: NextPage = () => {
               </Link>
             </div>
           </div>
-          <div className="w-3/5 shadow-xl">
+          <div className="shadow-xl sm:mx-8 xl:h-fit xl:w-2/3">
             <Image
               src={appDemo}
               alt="A .gif image demonstrating the isitmyturn.io app"
