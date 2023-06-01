@@ -41,7 +41,10 @@ const Home: NextPage = () => {
   const createSessionMutation = api.router.createSession.useMutation();
 
   const shouldShowError =
-    hasProvidedInput && !isTyping && sessionNameErrors.length > 0;
+    newSessionName &&
+    hasProvidedInput &&
+    !isTyping &&
+    sessionNameErrors.length > 0;
 
   const shouldShowSlugAvailableMessage =
     !isTyping &&
@@ -70,8 +73,15 @@ const Home: NextPage = () => {
     slugExistsQuery.isError ||
     slugExistsQuery.data.exists;
 
-  const handleOnChange = (changeEvent: ChangeEvent<HTMLInputElement>) => {
+  const handleOnInput = (changeEvent: ChangeEvent<HTMLInputElement>) => {
     changeEvent.preventDefault();
+    changeEvent.target.value = changeEvent.target.value.trim();
+    if (
+      (!changeEvent.target.value && !newSessionName) ||
+      changeEvent.target.value === newSessionName
+    ) {
+      return;
+    }
     const { errors, slug } = toSessionSlug(changeEvent.target.value);
     if (changeEvent.target.value) {
       setHasProvidedInput(true);
@@ -139,8 +149,8 @@ const Home: NextPage = () => {
               </span>
               <span className="text-teal-500">Without replacement.</span>
             </div>
-            <div className="flex flex-col items-center gap-16 md:flex-row md:justify-evenly">
-              <div className="px-16 flex flex-col gap-y-4">
+            <div className="flex flex-col items-center gap-16 lg:flex-row lg:justify-evenly">
+              <div className="flex flex-col gap-y-4 px-16">
                 <span className="text-4xl font-semibold">Perfect for...</span>
                 <ul className="flex flex-col gap-2 text-2xl">
                   <li>
@@ -178,11 +188,11 @@ const Home: NextPage = () => {
                     type="text"
                     className="w-64 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-lg text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-teal-500"
                     placeholder="Enter your session name"
-                    onChange={handleOnChange}
+                    onInput={handleOnInput}
                     required
                   />
-                  {newSlugDisplayedToClient && (
-                    <div className="flex w-full flex-col gap-2">
+                  {
+                    <div className="flex w-full grow-0 flex-col items-center gap-2">
                       <div className="flex flex-row items-center justify-center gap-2">
                         <strong
                           className={cn(
@@ -192,28 +202,21 @@ const Home: NextPage = () => {
                         >
                           Your session slug will be:
                         </strong>
-                        <code
-                          className={cn(
-                            "overflow-auto rounded-md px-1.5 py-1",
-                            shouldShowError
-                              ? "bg-pink-100 text-red-500"
-                              : "bg-gray-200 text-gray-600"
-                          )}
-                        >
-                          {newSlugDisplayedToClient}
-                        </code>
+                        {newSlugDisplayedToClient && (
+                          <code
+                            className={cn(
+                              "grow-0 w-full max-w-xs overflow-auto rounded-md px-1.5 py-1",
+                              shouldShowError
+                                ? "bg-pink-100 text-red-500"
+                                : "bg-gray-200 text-gray-600"
+                            )}
+                          >
+                            {newSlugDisplayedToClient}
+                          </code>
+                        )}
                       </div>
-                      {sessionNameErrors.length > 0 && (
-                        <ul className="ml-4 list-disc whitespace-pre-line px-2 text-red-500 lg:px-0">
-                          {sessionNameErrors.map((errorType) => (
-                            <li key={errorType}>
-                              {messageFromError(errorType)}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
                     </div>
-                  )}
+                  }
                   {createSessionMutation.isIdle && (
                     <div className="flex w-full flex-col items-center justify-center gap-8">
                       <div className="flex flex-row justify-evenly">
@@ -225,6 +228,25 @@ const Home: NextPage = () => {
                           Get started
                         </button>
                       </div>
+                      {shouldShowError && (
+                        <ul className="flex flex-col gap-2 px-2 text-red-500 lg:w-3/5 lg:px-0">
+                          {sessionNameErrors.map((errorType) => {
+                            const { primaryMessage, secondaryMessage } =
+                              messageFromError(errorType);
+                            return (
+                              <li key={errorType}>
+                                <div
+                                  className="border-l-4 border-red-500 bg-red-100 p-4 text-red-700"
+                                  role="alert"
+                                >
+                                  <p className="font-bold">{primaryMessage}</p>
+                                  <p>{secondaryMessage}</p>
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
                       {(isTyping && <Spinner />) ||
                         (hasProvidedInput && slugExistsQuery.isLoading && (
                           <Spinner />

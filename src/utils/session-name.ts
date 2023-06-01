@@ -21,11 +21,22 @@ const MAX_SLUG_LENGTH = 36;
 export const MAX_ITEM_NAME_LENGTH = 500;
 
 const ERROR_MESSAGES = {
-  InvalidCharacter:
-    "The session name contains an invalid character. Only English alphabetical characters, numeric characters, spaces, and hyphens are permitted.",
-  TooLong:
-    "The session name produces a session slug that is too long. Please ensure the slug is at most 36 characters.",
-} as const satisfies Readonly<Record<ToSessionSlugError, string>>;
+  InvalidCharacter: {
+    primaryMessage: "The session name contains an invalid character.",
+    secondaryMessage:
+      "Only English alphabetical characters, numeric characters, spaces, and hyphens are permitted.",
+  },
+  TooLong: {
+    primaryMessage:
+      "The session name produces a session slug that is too long.",
+    secondaryMessage: "Please ensure the slug is at most 36 characters.",
+  },
+} as const satisfies Readonly<
+  Record<
+    ToSessionSlugError,
+    { primaryMessage: string; secondaryMessage: string }
+  >
+>;
 
 const spaceToHyphen = (character: string) =>
   character === " " ? "-" : character;
