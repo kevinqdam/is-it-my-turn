@@ -276,7 +276,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
       >
         <motion.div
           layout
-          className="flex h-full flex-col gap-10 overflow-scroll p-4 rounded-lg shadow-md ring-1 ring-black/5 mx-4 md:flex-row md:justify-evenly md:overflow-hidden"
+          className="flex h-full flex-col gap-10 overflow-scroll p-4 rounded-lg shadow-md ring-1 ring-black/5 mx-4 md:ring-0 md:shadow-none md:flex-row md:justify-evenly md:overflow-hidden"
         >
           <motion.div className="flex w-full flex-col gap-4">
             <motion.h1 layout className="w-full text-center text-2xl font-bold">
