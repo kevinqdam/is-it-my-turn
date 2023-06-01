@@ -272,11 +272,11 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
       </Head>
       <motion.div
         layout
-        className="flex h-full flex-col justify-between gap-6 overflow-hidden p-4 pt-12"
+        className="flex h-full flex-col justify-between gap-8 md:gap-6 overflow-hidden p-4 pt-12"
       >
         <motion.div
           layout
-          className="flex h-full flex-row justify-evenly gap-10 overflow-hidden p-4 pt-0"
+          className="flex h-full flex-col gap-10 overflow-scroll p-4 rounded-lg shadow-md ring-1 ring-black/5 mx-4 md:flex-row md:justify-evenly md:overflow-hidden"
         >
           <motion.div className="flex w-full flex-col gap-4">
             <motion.h1 layout className="w-full text-center text-2xl font-bold">
@@ -284,7 +284,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
             </motion.h1>
             <motion.div
               layout
-              className="flex h-full w-full flex-col overflow-hidden rounded-lg border"
+              className="flex h-72 w-full flex-col overflow-hidden rounded-lg border md:h-full"
             >
               <motion.div className="flex h-full flex-col overflow-auto">
                 {(sessionItemsQuery.isLoading && (
@@ -317,7 +317,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
             </motion.h1>
             <motion.div
               layout
-              className="flex h-full w-full flex-col rounded-lg border"
+              className="flex h-36 w-full flex-col rounded-lg border md:h-full"
             >
               {(sessionItemsQuery.isLoading && (
                 <LoadingList itemCount={2} />
@@ -350,7 +350,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
             </motion.h1>
             <motion.div
               layout
-              className="flex h-full w-full flex-col overflow-auto rounded-lg border"
+              className="flex h-72 w-full flex-col overflow-auto rounded-lg border md:h-full"
             >
               {(sessionItemsQuery.isLoading && (
                 <LoadingList itemCount={7} />
@@ -383,7 +383,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
           </motion.div>
         </motion.div>
         <motion.div className="flex flex-row items-center">
-          <motion.div className="w-1/3 pl-4 pr-6">
+          <motion.div className="w-full pl-4 pr-4 md:ml-4 md:w-1/3 md:pr-8">
             <motion.form
               layout
               onSubmit={handleAddToQueue}
@@ -442,7 +442,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
             </motion.div>
           )}
         </motion.div>
-        <motion.div layout className="flex flex-row justify-evenly">
+        <motion.div layout className="flex flex-row justify-evenly mx-4">
           <motion.div layout className="flex flex-row gap-6">
             <motion.button
               layout
