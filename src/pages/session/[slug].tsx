@@ -274,98 +274,112 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
         layout
         className="flex h-full flex-col justify-between gap-6 overflow-hidden p-4 pt-12"
       >
-        <motion.div className="flex flex-row justify-evenly gap-2">
-          <motion.h1 layout className="w-full text-center text-2xl font-bold">
-            In the queue
-          </motion.h1>
-          <motion.h1 layout className="w-full text-center text-2xl font-bold">
-            Up next
-          </motion.h1>
-          <motion.h1 layout className="w-full text-center text-2xl font-bold">
-            Went already
-          </motion.h1>
-        </motion.div>
         <motion.div
           layout
           className="flex h-full flex-row justify-evenly gap-10 overflow-hidden p-4 pt-0"
         >
-          <motion.div
-            layout
-            className="flex h-full w-full flex-col overflow-hidden rounded-lg border"
-          >
-            <motion.div className="flex h-full flex-col overflow-auto">
+          <motion.div className="flex w-full flex-col gap-4">
+            <motion.h1 layout className="w-full text-center text-2xl font-bold">
+              In the queue
+            </motion.h1>
+            <motion.div
+              layout
+              className="flex h-full w-full flex-col overflow-hidden rounded-lg border"
+            >
+              <motion.div className="flex h-full flex-col overflow-auto">
+                {(sessionItemsQuery.isLoading && (
+                  <LoadingList itemCount={7} />
+                )) || (
+                  <motion.div layout className="w-full p-4">
+                    <Reorder.Group
+                      axis="y"
+                      values={queueItems}
+                      onReorder={handleReorderQueue}
+                      className="flex h-full w-full flex-col gap-4"
+                    >
+                      {queueItems.map((queueItem) => (
+                        <QueueListItem
+                          key={queueItem.id}
+                          item={queueItem}
+                          handleUpdateItem={handleUpdateItem}
+                          handleDeleteQueueItem={handleDeleteQueueItem}
+                        />
+                      ))}
+                    </Reorder.Group>
+                  </motion.div>
+                )}
+              </motion.div>
+            </motion.div>
+          </motion.div>
+          <motion.div className="flex w-full flex-col gap-4">
+            <motion.h1 layout className="w-full text-center text-2xl font-bold">
+              Up next
+            </motion.h1>
+            <motion.div
+              layout
+              className="flex h-full w-full flex-col rounded-lg border"
+            >
               {(sessionItemsQuery.isLoading && (
-                <LoadingList itemCount={7} />
+                <LoadingList itemCount={2} />
               )) || (
-                <motion.div layout className="w-full p-4">
-                  <Reorder.Group
-                    axis="y"
-                    values={queueItems}
-                    onReorder={handleReorderQueue}
-                    className="flex h-full w-full flex-col gap-4"
-                  >
-                    {queueItems.map((queueItem) => (
-                      <QueueListItem
-                        key={queueItem.id}
-                        item={queueItem}
-                        handleUpdateItem={handleUpdateItem}
-                        handleDeleteQueueItem={handleDeleteQueueItem}
-                      />
-                    ))}
-                  </Reorder.Group>
+                <motion.div layout className="flex w-full flex-col p-4">
+                  <AnimatePresence>
+                    {nextItem && (
+                      <motion.span
+                        layout
+                        key={nextItem.name}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{
+                          duration: 0.2,
+                        }}
+                        className="flex flex-row gap-4 rounded-lg border bg-green-100 p-4"
+                      >
+                        {nextItem.name}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               )}
             </motion.div>
           </motion.div>
-          <motion.div layout className="flex w-full flex-col rounded-lg border">
-            {(sessionItemsQuery.isLoading && <LoadingList itemCount={2} />) || (
-              <motion.div layout className="flex w-full flex-col p-4">
+          <motion.div className="flex w-full flex-col gap-4">
+            <motion.h1 layout className="w-full text-center text-2xl font-bold">
+              Went already
+            </motion.h1>
+            <motion.div
+              layout
+              className="flex h-full w-full flex-col overflow-auto rounded-lg border"
+            >
+              {(sessionItemsQuery.isLoading && (
+                <LoadingList itemCount={7} />
+              )) || (
                 <AnimatePresence>
-                  {nextItem && (
-                    <motion.span
+                  {wentAlreadyItems.length > 0 ? (
+                    <motion.div
                       layout
-                      key={nextItem.name}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{
-                        duration: 0.2,
-                      }}
-                      className="flex flex-row gap-4 rounded-lg border bg-green-100 p-4"
+                      className="flex w-full flex-col gap-4 p-4"
                     >
-                      {nextItem.name}
-                    </motion.span>
+                      {wentAlreadyItems.map((wentAlreadyItem) => (
+                        <motion.span
+                          layout
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="flex flex-row gap-4 rounded-lg border bg-slate-200 p-4"
+                          key={wentAlreadyItem.id}
+                        >
+                          {wentAlreadyItem.name}
+                        </motion.span>
+                      ))}
+                    </motion.div>
+                  ) : (
+                    <motion.div layout className="flex w-full" />
                   )}
                 </AnimatePresence>
-              </motion.div>
-            )}
-          </motion.div>
-          <motion.div
-            layout
-            className="flex h-full w-full flex-col overflow-auto rounded-lg border"
-          >
-            {(sessionItemsQuery.isLoading && <LoadingList itemCount={7} />) || (
-              <AnimatePresence>
-                {wentAlreadyItems.length > 0 ? (
-                  <motion.div layout className="flex w-full flex-col gap-4 p-4">
-                    {wentAlreadyItems.map((wentAlreadyItem) => (
-                      <motion.span
-                        layout
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex flex-row gap-4 rounded-lg border bg-slate-200 p-4"
-                        key={wentAlreadyItem.id}
-                      >
-                        {wentAlreadyItem.name}
-                      </motion.span>
-                    ))}
-                  </motion.div>
-                ) : (
-                  <motion.div layout className="flex w-full" />
-                )}
-              </AnimatePresence>
-            )}
+              )}
+            </motion.div>
           </motion.div>
         </motion.div>
         <motion.div className="flex flex-row items-center">
