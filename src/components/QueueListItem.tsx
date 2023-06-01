@@ -137,7 +137,7 @@ const QueueListItem: React.FC<QueueListItemProps> = ({
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
-                className="h-4 w-4 stroke-transparent group-hover:stroke-slate-600"
+                className="h-4 w-4 stroke-slate-500"
               >
                 <path
                   strokeLinecap="round"
@@ -152,7 +152,7 @@ const QueueListItem: React.FC<QueueListItemProps> = ({
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
-                className="h-4 w-4 stroke-transparent group-hover:stroke-slate-600"
+                className="h-4 w-4 stroke-slate-500"
               >
                 <path
                   strokeLinecap="round"
