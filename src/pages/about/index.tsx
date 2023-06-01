@@ -89,7 +89,7 @@ const About: NextPage = () => {
               </Link>
             </div>
           </div>
-          <div className="shadow-xl sm:mx-8 xl:h-fit xl:w-2/3">
+          <div className="ring-1 ring-black/5 shadow-xl sm:mx-8 xl:h-fit xl:w-2/3">
             <Image
               src={appDemo}
               alt="A .gif image demonstrating the isitmyturn.io app"
