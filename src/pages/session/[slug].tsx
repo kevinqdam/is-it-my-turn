@@ -52,15 +52,21 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
   const sessionItemsQuery = api.router.getAllSessionItems.useQuery(
     { sessionSlug: router.query.slug as string },
     {
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
+      refetchOnWindowFocus: "always",
+      refetchOnMount: "always",
       staleTime: ONE_MINUTE_IN_MS,
       enabled: Boolean(router.query.slug),
     }
   );
-  const createSessionItemMutation = api.router.createSessionItem.useMutation();
-  const updateSessionItemMutation = api.router.updateSessionItem.useMutation();
-  const deleteSessionItemMutation = api.router.deleteSessionItem.useMutation();
+  const createSessionItemMutation = api.router.createSessionItem.useMutation({
+    onSuccess: () => api.useContext().invalidate(),
+  });
+  const updateSessionItemMutation = api.router.updateSessionItem.useMutation({
+    onSuccess: () => api.useContext().invalidate(),
+  });
+  const deleteSessionItemMutation = api.router.deleteSessionItem.useMutation({
+    onSuccess: () => api.useContext().invalidate(),
+  });
 
   const [queueItems, setQueueItems] = useState<Item[]>([]);
   const [nextItem, setNextItem] = useState<Item>();
@@ -272,11 +278,11 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
       </Head>
       <motion.div
         layout
-        className="flex h-full flex-col justify-between gap-8 md:gap-6 overflow-hidden p-4 pt-12"
+        className="flex h-full flex-col justify-between gap-8 overflow-hidden p-4 pt-12 md:gap-6"
       >
         <motion.div
           layout
-          className="flex h-full flex-col gap-10 overflow-scroll p-4 rounded-lg shadow-md ring-1 ring-black/5 mx-4 md:ring-0 md:shadow-none md:flex-row md:justify-evenly md:overflow-hidden"
+          className="mx-4 flex h-full flex-col gap-10 overflow-scroll rounded-lg p-4 shadow-md ring-1 ring-black/5 md:flex-row md:justify-evenly md:overflow-hidden md:shadow-none md:ring-0"
         >
           <motion.div className="flex w-full flex-col gap-4">
             <motion.h1 layout className="w-full text-center text-2xl font-bold">
@@ -442,7 +448,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
             </motion.div>
           )}
         </motion.div>
-        <motion.div layout className="flex flex-row justify-evenly mx-4">
+        <motion.div layout className="mx-4 flex flex-row justify-evenly">
           <motion.div layout className="flex flex-row gap-6">
             <motion.button
               layout
