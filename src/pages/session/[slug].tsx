@@ -48,6 +48,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
 const Session: NextPage<{ name: string }> = ({ name }) => {
   const router = useRouter();
+  const apiContext = api.useContext();
 
   const sessionItemsQuery = api.router.getAllSessionItems.useQuery(
     { sessionSlug: router.query.slug as string },
@@ -59,13 +60,19 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     }
   );
   const createSessionItemMutation = api.router.createSessionItem.useMutation({
-    onSuccess: () => api.useContext().invalidate(),
+    onSuccess() {
+      apiContext.invalidate();
+    },
   });
   const updateSessionItemMutation = api.router.updateSessionItem.useMutation({
-    onSuccess: () => api.useContext().invalidate(),
+    onSuccess() {
+      apiContext.invalidate();
+    },
   });
   const deleteSessionItemMutation = api.router.deleteSessionItem.useMutation({
-    onSuccess: () => api.useContext().invalidate(),
+    onSuccess() {
+      apiContext.invalidate();
+    },
   });
 
   const [queueItems, setQueueItems] = useState<Item[]>([]);
@@ -92,8 +99,15 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     sessionItemsQuery.data,
   ]);
 
+  const isMutationLoading =
+    createSessionItemMutation.isLoading ||
+    updateSessionItemMutation.isLoading ||
+    deleteSessionItemMutation.isLoading;
+
+  const isShuffleDisabled = isMutationLoading;
+  const isResetDisabled = isMutationLoading;
   const isWhosNextDisabled =
-    sessionItemsQuery.isLoading || queueItems.length === 0;
+    sessionItemsQuery.isLoading || queueItems.length === 0 || isMutationLoading;
 
   const handleWhosNextClick = () => {
     const [newNextItem] = queueItems;
@@ -278,11 +292,11 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
       </Head>
       <motion.div
         layout
-        className="flex h-full flex-col justify-between gap-8 overflow-hidden p-4 pt-12 md:gap-6"
+        className="flex h-full flex-col justify-between gap-8 overflow-auto p-4 pt-12 md:gap-6"
       >
         <motion.div
           layout
-          className="mx-4 flex h-full flex-col gap-10 overflow-scroll rounded-lg p-4 shadow-md ring-1 ring-black/5 md:flex-row md:justify-evenly md:overflow-hidden md:shadow-none md:ring-0"
+          className="mx-4 flex h-full min-h-fit flex-col gap-10 overflow-scroll rounded-lg p-4 px-6 shadow-md ring-1 ring-black/5 md:flex-row md:justify-evenly md:overflow-hidden md:px-0 md:shadow-none md:ring-0"
         >
           <motion.div className="flex w-full flex-col gap-4">
             <motion.h1 layout className="w-full text-center text-2xl font-bold">
@@ -388,8 +402,8 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
             </motion.div>
           </motion.div>
         </motion.div>
-        <motion.div className="flex flex-row items-center">
-          <motion.div className="w-full pl-4 pr-4 md:ml-4 md:w-1/3 md:pr-8">
+        <motion.div className="flex flex-col items-center gap-4 md:flex-row md:gap-0">
+          <motion.div className="w-full pl-4 pr-4 md:w-1/3 md:pr-6">
             <motion.form
               layout
               onSubmit={handleAddToQueue}
@@ -453,14 +467,16 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
             <motion.button
               layout
               onClick={handleShuffleClick}
-              className="rounded-lg border border-teal-500 px-4 py-2 text-teal-500 transition enabled:hover:bg-teal-100 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
+              disabled={isShuffleDisabled}
+              className="rounded-lg border border-teal-500 px-4 py-2 text-teal-500 transition enabled:hover:bg-teal-100 disabled:border-0 disabled:bg-gray-400 disabled:text-white disabled:hover:cursor-not-allowed"
             >
               Shuffle queue
             </motion.button>
             <motion.button
               layout
               onClick={handleResetClick}
-              className="rounded-lg border border-pink-500 px-4 py-2 text-pink-500 transition enabled:hover:bg-pink-100 disabled:bg-gray-500 disabled:hover:cursor-not-allowed"
+              disabled={isResetDisabled}
+              className="rounded-lg border border-pink-500 px-4 py-2 text-pink-500 transition enabled:hover:bg-pink-100 disabled:border-0 disabled:bg-gray-400 disabled:text-white disabled:hover:cursor-not-allowed"
             >
               Reset
             </motion.button>
