@@ -18,6 +18,7 @@ import { prisma } from "~/server/db";
 import { appRouter } from "~/server/api/root";
 import { MAX_ITEM_NAME_LENGTH } from "~/utils/session-name";
 import Head from "next/head";
+import { useDebouncedCallback } from "use-debounce";
 
 /**
  * Comparator to sort an array of {@link Item}s in ascending order
@@ -48,6 +49,10 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
   const router = useRouter();
   const apiContext = api.useContext();
 
+  const invalidateTrpcRouterDebounced = useDebouncedCallback(() => {
+    apiContext.invalidate();
+  }, 3_000);
+
   const sessionItemsQuery = api.router.getAllSessionItems.useQuery(
     { sessionSlug: router.query.slug as string },
     {
@@ -58,17 +63,17 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
   );
   const createSessionItemMutation = api.router.createSessionItem.useMutation({
     onSuccess() {
-      apiContext.invalidate();
+      invalidateTrpcRouterDebounced();
     },
   });
   const updateSessionItemMutation = api.router.updateSessionItem.useMutation({
     onSuccess() {
-      apiContext.invalidate();
+      invalidateTrpcRouterDebounced();
     },
   });
   const deleteSessionItemMutation = api.router.deleteSessionItem.useMutation({
     onSuccess() {
-      apiContext.invalidate();
+      invalidateTrpcRouterDebounced();
     },
   });
 
@@ -318,6 +323,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
                         <QueueListItem
                           key={queueItem.id}
                           item={queueItem}
+                          isMutationLoading={isMutationLoading}
                           handleUpdateItem={handleUpdateItem}
                           handleDeleteQueueItem={handleDeleteQueueItem}
                         />
