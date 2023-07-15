@@ -30,8 +30,6 @@ const byAscendingOrder = (a: Item, b: Item) => a.order - b.order;
  */
 const NEW_QUEUE_ITEM_INPUT_NAME = "newQueueItem";
 
-const ONE_MINUTE_IN_MS = 60 * 1_000;
-
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const apiCaller = appRouter.createCaller({ prisma });
   const { exists: doesSlugExist, name } =
@@ -54,8 +52,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     { sessionSlug: router.query.slug as string },
     {
       refetchOnWindowFocus: "always",
-      refetchOnMount: "always",
-      staleTime: ONE_MINUTE_IN_MS,
+      staleTime: Infinity,
       enabled: Boolean(router.query.slug),
     }
   );
