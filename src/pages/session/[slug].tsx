@@ -18,7 +18,6 @@ import { prisma } from "~/server/db";
 import { appRouter } from "~/server/api/root";
 import { MAX_ITEM_NAME_LENGTH } from "~/utils/session-name";
 import Head from "next/head";
-import { useDebouncedCallback } from "use-debounce";
 
 /**
  * Comparator to sort an array of {@link Item}s in ascending order
@@ -47,35 +46,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
 const Session: NextPage<{ name: string }> = ({ name }) => {
   const router = useRouter();
-  const apiContext = api.useContext();
-
-  const invalidateTrpcRouterDebounced = useDebouncedCallback(() => {
-    apiContext.invalidate();
-  }, 3_000);
 
   const sessionItemsQuery = api.router.getAllSessionItems.useQuery(
     { sessionSlug: router.query.slug as string },
     {
       refetchOnWindowFocus: "always",
-      staleTime: Infinity,
       enabled: Boolean(router.query.slug),
     }
   );
-  const createSessionItemMutation = api.router.createSessionItem.useMutation({
-    onSuccess() {
-      invalidateTrpcRouterDebounced();
-    },
-  });
-  const updateSessionItemMutation = api.router.updateSessionItem.useMutation({
-    onSuccess() {
-      invalidateTrpcRouterDebounced();
-    },
-  });
-  const deleteSessionItemMutation = api.router.deleteSessionItem.useMutation({
-    onSuccess() {
-      invalidateTrpcRouterDebounced();
-    },
-  });
+  const createSessionItemMutation = api.router.createSessionItem.useMutation();
+  const updateSessionItemMutation = api.router.updateSessionItem.useMutation();
+  const deleteSessionItemMutation = api.router.deleteSessionItem.useMutation();
 
   const [queueItems, setQueueItems] = useState<Item[]>([]);
   const [nextItem, setNextItem] = useState<Item>();
@@ -106,10 +87,19 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     updateSessionItemMutation.isLoading ||
     deleteSessionItemMutation.isLoading;
 
-  const isShuffleDisabled = isMutationLoading;
-  const isResetDisabled = isMutationLoading;
+  const isShuffleDisabled =
+    isMutationLoading ||
+    sessionItemsQuery.isLoading ||
+    sessionItemsQuery.isFetching;
+  const isResetDisabled =
+    isMutationLoading ||
+    sessionItemsQuery.isLoading ||
+    sessionItemsQuery.isFetching;
   const isWhosNextDisabled =
-    sessionItemsQuery.isLoading || queueItems.length === 0 || isMutationLoading;
+    sessionItemsQuery.isLoading ||
+    sessionItemsQuery.isFetching ||
+    queueItems.length === 0 ||
+    isMutationLoading;
 
   const handleWhosNextClick = () => {
     const [newNextItem] = queueItems;
