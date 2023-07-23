@@ -8,7 +8,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { Item } from "@prisma/client";
+import { Item, List } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import LoadingList from "../../components/LoadingList";
 import QueueListItem from "~/components/QueueListItem";
@@ -75,6 +75,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
   const [shouldShowAddToQueueError, setShouldShowAddToQueueError] =
     useState(false);
   const [isStatusBarVisible, setIsStatusBarVisible] = useState(false);
+  const [visibleMobileList, setVisibleMobileList] = useState<List>("NEXT");
 
   /**
    * Set the data in the client after the query resolves successfully
@@ -310,7 +311,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
   };
 
   return (
-    <motion.main layout className="h-full overflow-hidden">
+    <motion.main layout className="h-full overflow-auto">
       <Head>
         <title>{name}</title>
         <link rel="icon" href="/favicon.ico" />
@@ -380,22 +381,70 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* Mobile buttons */}
+      <ul className="flex h-10 w-full justify-center -space-x-px pt-4 text-base md:hidden">
+        <li>
+          <button
+            onClick={() => setVisibleMobileList("QUEUE")}
+            className={cn(
+              "ml-0 flex h-10 items-center justify-center rounded-l-lg border px-4 leading-tight",
+              visibleMobileList === "QUEUE"
+                ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-white text-gray-500 hover:bg-gray-100"
+            )}
+          >
+            Queue
+          </button>
+        </li>
+        <li>
+          <button
+            onClick={() => setVisibleMobileList("NEXT")}
+            className={cn(
+              "flex h-10 items-center justify-center border border-gray-300 px-4 leading-tight",
+              visibleMobileList === "NEXT"
+                ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-white text-gray-500 hover:bg-gray-100"
+            )}
+          >
+            Next
+          </button>
+        </li>
+        <li>
+          <button
+            onClick={() => setVisibleMobileList("WENT")}
+            className={cn(
+              "flex h-10 items-center justify-center rounded-r-lg border border-gray-300 px-4 leading-tight",
+              visibleMobileList === "WENT"
+                ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-white text-gray-500 hover:bg-gray-100"
+            )}
+          >
+            Went
+          </button>
+        </li>
+      </ul>
       {/* App */}
       <motion.div
         layout
-        className="flex h-full flex-col justify-between gap-8 overflow-auto p-4 pt-12 md:gap-6"
+        className="flex h-[65vh] flex-col justify-between gap-8 overflow-auto p-4 pt-12 md:h-full md:gap-6"
       >
         <motion.div
           layout
-          className="mx-4 flex h-full min-h-fit flex-col gap-10 overflow-scroll rounded-lg p-4 px-6 shadow-md ring-1 ring-black/5 md:flex-row md:justify-evenly md:overflow-hidden md:px-0 md:shadow-none md:ring-0"
+          className="mx-4 flex h-full min-h-fit flex-col overflow-scroll rounded-lg p-4 px-6 shadow-md ring-1 ring-black/5 md:flex-row md:justify-evenly md:gap-10 md:overflow-hidden md:px-0 md:shadow-none md:ring-0"
         >
           <motion.div className="flex w-full flex-col gap-4">
-            <motion.h1 layout className="w-full text-center text-2xl font-bold">
+            <motion.h1
+              layout
+              className="hidden w-full text-center text-2xl font-bold md:block"
+            >
               In the queue
             </motion.h1>
             <motion.div
               layout
-              className="flex h-72 w-full flex-col overflow-hidden rounded-lg border md:h-full"
+              className={cn(
+                "h-72 w-full flex-col overflow-hidden rounded-lg border md:flex md:h-full",
+                visibleMobileList === "QUEUE" ? "flex" : "hidden"
+              )}
             >
               <motion.div className="flex h-full flex-col overflow-auto">
                 {(sessionItemsQuery.isLoading && (
@@ -424,12 +473,18 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
             </motion.div>
           </motion.div>
           <motion.div className="flex w-full flex-col gap-4">
-            <motion.h1 layout className="w-full text-center text-2xl font-bold">
+            <motion.h1
+              layout
+              className="hidden w-full text-center text-2xl font-bold md:block"
+            >
               Up next
             </motion.h1>
             <motion.div
               layout
-              className="flex h-36 w-full flex-col rounded-lg border md:h-full"
+              className={cn(
+                "h-36 w-full flex-col overflow-hidden rounded-lg border md:flex md:h-full",
+                visibleMobileList === "NEXT" ? "flex" : "hidden"
+              )}
             >
               {(sessionItemsQuery.isLoading && (
                 <LoadingList itemCount={2} />
@@ -457,12 +512,18 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
             </motion.div>
           </motion.div>
           <motion.div className="flex w-full flex-col gap-4">
-            <motion.h1 layout className="w-full text-center text-2xl font-bold">
+            <motion.h1
+              layout
+              className="hidden w-full text-center text-2xl font-bold md:block"
+            >
               Went already
             </motion.h1>
             <motion.div
               layout
-              className="flex h-72 w-full flex-col overflow-auto rounded-lg border md:h-full"
+              className={cn(
+                "h-72 w-full flex-col overflow-hidden rounded-lg border md:flex md:h-full",
+                visibleMobileList === "WENT" ? "flex" : "hidden"
+              )}
             >
               {(sessionItemsQuery.isLoading && (
                 <LoadingList itemCount={7} />
