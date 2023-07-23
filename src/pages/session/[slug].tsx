@@ -54,18 +54,27 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
       enabled: Boolean(router.query.slug),
     }
   );
-  const createSessionItemMutation = api.router.createSessionItem.useMutation();
-  const updateSessionItemMutation = api.router.updateSessionItem.useMutation();
-  const updateWhosNextMutation = api.router.updateWhosNext.useMutation();
+  const createSessionItemMutation = api.router.createSessionItem.useMutation({
+    retry: false,
+  });
+  const updateSessionItemMutation = api.router.updateSessionItem.useMutation({
+    retry: false,
+  });
+  const updateWhosNextMutation = api.router.updateWhosNext.useMutation({
+    retry: false,
+  });
   const updateSessionItemBatchMutation =
-    api.router.updateSessionItemBatch.useMutation();
-  const deleteSessionItemMutation = api.router.deleteSessionItem.useMutation();
+    api.router.updateSessionItemBatch.useMutation({ retry: false });
+  const deleteSessionItemMutation = api.router.deleteSessionItem.useMutation({
+    retry: false,
+  });
 
   const [queueItems, setQueueItems] = useState<Item[]>([]);
   const [nextItem, setNextItem] = useState<Item>();
   const [wentAlreadyItems, setWentAlreadyItems] = useState<Item[]>([]);
   const [shouldShowAddToQueueError, setShouldShowAddToQueueError] =
     useState(false);
+  const [isStatusBarVisible, setIsStatusBarVisible] = useState(false);
 
   /**
    * Set the data in the client after the query resolves successfully
@@ -91,6 +100,43 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     updateWhosNextMutation.isLoading ||
     updateSessionItemBatchMutation.isLoading ||
     deleteSessionItemMutation.isLoading;
+  const isMutationError =
+    createSessionItemMutation.isError ||
+    updateSessionItemMutation.isError ||
+    updateWhosNextMutation.isError ||
+    updateSessionItemBatchMutation.isError ||
+    deleteSessionItemMutation.isError;
+
+  /**
+   * The status bar is visible whenever any query or mutation is loading
+   */
+  useEffect(() => {
+    if (sessionItemsQuery.isLoading || isMutationLoading) {
+      setIsStatusBarVisible(true);
+    }
+  }, [sessionItemsQuery.isLoading, isMutationLoading, isMutationError]);
+
+  /**
+   * The status bar hides when the queries and mutations are all successful
+   */
+  useEffect(() => {
+    if (sessionItemsQuery.isSuccess && !isMutationLoading && !isMutationError) {
+      const hideStatusBar = async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1_000));
+        setIsStatusBarVisible(false);
+      };
+      hideStatusBar();
+    }
+  }, [sessionItemsQuery.isSuccess, isMutationLoading, isMutationError]);
+
+  /**
+   * The status bar is visible when there is an error
+   */
+  useEffect(() => {
+    if (sessionItemsQuery.isError || isMutationError) {
+      setIsStatusBarVisible(true);
+    }
+  }, [sessionItemsQuery.isError, isMutationError]);
 
   const isShuffleDisabled =
     isMutationLoading ||
@@ -290,6 +336,51 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
         <meta name="msapplication-TileColor" content="#da532c" />
         <meta name="theme-color" content="#ffffff" />
       </Head>
+      {/* Status bar */}
+      <AnimatePresence>
+        {isStatusBarVisible && (
+          <motion.div
+            initial={{ y: -140 }}
+            animate={{ y: -60 }}
+            exit={{ y: -150 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className={cn("absolute flex w-full justify-center")}
+            aria-hidden={!isStatusBarVisible}
+          >
+            {(isMutationLoading && (
+              <div
+                className="absolute rounded-lg border border-slate-500 bg-slate-100 px-4 py-3 text-slate-700"
+                role="alert"
+              >
+                <p className="font-bold">
+                  {isMutationLoading ? "Loading..." : "Success!"}
+                </p>
+              </div>
+            )) ||
+              (isMutationError && (
+                <div
+                  className="absolute rounded-lg border border-red-500 bg-red-100 px-4 py-3 text-red-700"
+                  role="alert"
+                >
+                  <p>
+                    <span className="font-bold">
+                      Sorry, something went wrong!
+                    </span>{" "}
+                    Please refresh the page and try again.
+                  </p>
+                </div>
+              )) || (
+                <div
+                  className="absolute rounded-lg border border-green-500 bg-green-100 px-4 py-3 text-green-700"
+                  role="alert"
+                >
+                  <p className="font-bold">Success!</p>
+                </div>
+              )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* App */}
       <motion.div
         layout
         className="flex h-full flex-col justify-between gap-8 overflow-auto p-4 pt-12 md:gap-6"
