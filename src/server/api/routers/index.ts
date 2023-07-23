@@ -40,17 +40,18 @@ const queryAllSessionItems = async ({
   return items;
 };
 
-const updateSessionItem = async ({
-  input: { itemIdToUpdate, newOrder, newName, newList },
+const updateSessionItem = ({
+  itemIdToUpdate,
+  newOrder,
+  newName,
+  newList,
 }: {
-  input: {
-    itemIdToUpdate: string;
-    newOrder: number;
-    newName: string;
-    newList: List;
-  };
+  itemIdToUpdate: string;
+  newOrder: number;
+  newName: string;
+  newList: List;
 }) => {
-  await prisma.item.update({
+  return prisma.item.update({
     where: {
       id: itemIdToUpdate,
     },
@@ -147,7 +148,50 @@ export const router = createTRPCRouter({
         sessionSlug: z.string().regex(SLUG_PATTERN),
       })
     )
-    .mutation(updateSessionItem),
+    .mutation(async ({ input: item }) => await updateSessionItem(item)),
+  updateWhosNext: publicProcedure
+    .input(
+      z.object({
+        currentNextItem: z
+          .object({
+            itemIdToUpdate: z.string(),
+            newOrder: z.number().int(),
+            newName: z.string(),
+            newList: z.enum([List.QUEUE, List.NEXT, List.WENT]),
+            sessionSlug: z.string().regex(SLUG_PATTERN),
+          })
+          .optional(),
+        newNextItem: z.object({
+          itemIdToUpdate: z.string(),
+          newOrder: z.number().int(),
+          newName: z.string(),
+          newList: z.enum([List.QUEUE, List.NEXT, List.WENT]),
+          sessionSlug: z.string().regex(SLUG_PATTERN),
+        }),
+      })
+    )
+    .mutation(async ({ input: { currentNextItem, newNextItem } }) => {
+      await prisma.$transaction([
+        ...(currentNextItem ? [updateSessionItem(currentNextItem)] : []),
+        updateSessionItem(newNextItem),
+      ]);
+    }),
+  updateSessionItemBatch: publicProcedure
+    .input(
+      z.array(
+        z.object({
+          sessionSlug: z.string().regex(SLUG_PATTERN),
+          itemIdToUpdate: z.string(),
+          newName: z.string(),
+          newList: z.enum([List.QUEUE, List.NEXT, List.WENT]),
+          newOrder: z.number().int(),
+        })
+      )
+    )
+    .mutation(async ({ input: items }) => {
+      const updatePromises = items.map(updateSessionItem);
+      await prisma.$transaction(updatePromises);
+    }),
   deleteSessionItem: publicProcedure
     .input(
       z.object({
@@ -172,23 +216,22 @@ export const router = createTRPCRouter({
         }
       }
       // update the order of the items in the database
-      await Promise.all(
-        allSessionItems.map((item) =>
-          updateSessionItem({
-            input: {
-              itemIdToUpdate: item.id,
-              newOrder: item.order,
-              newName: item.name,
-              newList: item.list,
-            },
-          })
-        )
+      const updatePromises = allSessionItems.map((item) =>
+        updateSessionItem({
+          itemIdToUpdate: item.id,
+          newOrder: item.order,
+          newName: item.name,
+          newList: item.list,
+        })
       );
+
       // delete the item
-      await prisma.item.delete({
+      const deletePromise = prisma.item.delete({
         where: {
           id: itemToDelete.id,
         },
       });
+
+      await prisma.$transaction([...updatePromises, deletePromise]);
     }),
 });

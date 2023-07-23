@@ -56,6 +56,9 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
   );
   const createSessionItemMutation = api.router.createSessionItem.useMutation();
   const updateSessionItemMutation = api.router.updateSessionItem.useMutation();
+  const updateWhosNextMutation = api.router.updateWhosNext.useMutation();
+  const updateSessionItemBatchMutation =
+    api.router.updateSessionItemBatch.useMutation();
   const deleteSessionItemMutation = api.router.deleteSessionItem.useMutation();
 
   const [queueItems, setQueueItems] = useState<Item[]>([]);
@@ -85,6 +88,8 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
   const isMutationLoading =
     createSessionItemMutation.isLoading ||
     updateSessionItemMutation.isLoading ||
+    updateWhosNextMutation.isLoading ||
+    updateSessionItemBatchMutation.isLoading ||
     deleteSessionItemMutation.isLoading;
 
   const isShuffleDisabled =
@@ -101,73 +106,75 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     queueItems.length === 0 ||
     isMutationLoading;
 
-  const handleWhosNextClick = () => {
+  const handleWhosNextClick = async () => {
     const [newNextItem] = queueItems;
     const newQueueItems = queueItems.slice(1);
     const newWentAlreadyItems = nextItem
       ? [...wentAlreadyItems, nextItem]
       : [...wentAlreadyItems];
     const currentNextItem = nextItem;
+    if (newNextItem) {
+      await updateWhosNextMutation.mutateAsync({
+        currentNextItem: currentNextItem && {
+          sessionSlug: router.query.slug as string,
+          itemIdToUpdate: currentNextItem.id,
+          newList: "WENT",
+          newOrder: currentNextItem.order,
+          newName: currentNextItem.name,
+        },
+        newNextItem: {
+          sessionSlug: router.query.slug as string,
+          itemIdToUpdate: newNextItem.id,
+          newList: "NEXT",
+          newOrder: newNextItem.order,
+          newName: newNextItem.name,
+        },
+      });
+    }
     setQueueItems(newQueueItems);
     setNextItem(newNextItem);
     setWentAlreadyItems(newWentAlreadyItems);
-    if (currentNextItem) {
-      updateSessionItemMutation.mutate({
-        sessionSlug: router.query.slug as string,
-        itemIdToUpdate: currentNextItem.id,
-        newList: "WENT",
-        newOrder: currentNextItem.order,
-        newName: currentNextItem.name,
-      });
-    }
-    if (newNextItem) {
-      updateSessionItemMutation.mutate({
-        sessionSlug: router.query.slug as string,
-        itemIdToUpdate: newNextItem.id,
-        newList: "NEXT",
-        newOrder: newNextItem.order,
-        newName: newNextItem.name,
-      });
-    }
   };
 
-  const handleShuffleClick = () => {
+  const handleShuffleClick = async () => {
     const newQueueItems = [...queueItems];
     shuffleArray(newQueueItems);
-    setQueueItems(newQueueItems);
     const minimumOrder = Math.min(
       ...newQueueItems.map((item: Item) => item.order)
     );
-    newQueueItems.forEach((item, index) => {
-      const newOrder = minimumOrder + index;
-      updateSessionItemMutation.mutate({
-        sessionSlug: router.query.slug as string,
-        itemIdToUpdate: item.id,
-        newList: item.list,
-        newName: item.name,
-        newOrder,
-      });
-    });
+    await updateSessionItemBatchMutation.mutateAsync(
+      newQueueItems.map((item, index) => {
+        const newOrder = minimumOrder + index;
+        return {
+          sessionSlug: router.query.slug as string,
+          itemIdToUpdate: item.id,
+          newList: item.list,
+          newName: item.name,
+          newOrder,
+        };
+      })
+    );
+    setQueueItems(newQueueItems);
   };
 
-  const handleResetClick = () => {
+  const handleResetClick = async () => {
     const newQueueItems = [
       ...queueItems,
       ...wentAlreadyItems,
       ...(nextItem ? [nextItem] : []),
     ];
-    setQueueItems(newQueueItems);
-    setNextItem(undefined);
-    setWentAlreadyItems([]);
-    newQueueItems.forEach((item, index) => {
-      updateSessionItemMutation.mutate({
+    await updateSessionItemBatchMutation.mutateAsync(
+      newQueueItems.map((item, index) => ({
         sessionSlug: router.query.slug as string,
         itemIdToUpdate: item.id,
         newList: "QUEUE",
         newName: item.name,
         newOrder: index,
-      });
-    });
+      }))
+    );
+    setQueueItems(newQueueItems);
+    setNextItem(undefined);
+    setWentAlreadyItems([]);
   };
 
   const handleOnChangeAddToQueue: ChangeEventHandler<HTMLInputElement> = (
@@ -180,7 +187,9 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     }
   };
 
-  const handleAddToQueue = (submitEvent: BaseSyntheticEvent<SubmitEvent>) => {
+  const handleAddToQueue = async (
+    submitEvent: BaseSyntheticEvent<SubmitEvent>
+  ) => {
     submitEvent.preventDefault();
     const formElement = new FormData(submitEvent.target);
     const formData = Object.fromEntries(formElement.entries()) as {
@@ -205,13 +214,13 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
       sessionSlug: router.query.slug as string,
     };
     const newQueueItems = [...queueItems, queueItemToInsert];
-    setQueueItems(newQueueItems);
-    createSessionItemMutation.mutate({
+    await createSessionItemMutation.mutateAsync({
       sessionSlug: router.query.slug as string,
       name: queueItemName,
       order: queueItems.length + wentAlreadyItems.length + (nextItem ? 1 : 0),
       list: "QUEUE",
     });
+    setQueueItems(newQueueItems);
 
     // clear the input after successful submit
     submitEvent.target.reset();
@@ -224,7 +233,6 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
       return;
     }
     itemToUpdate.name = newItemName;
-    setQueueItems(newQueueItems);
     updateSessionItemMutation.mutate({
       sessionSlug: router.query.slug as string,
       itemIdToUpdate: itemToUpdate.id,
@@ -236,23 +244,23 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
 
   const handleReorderQueue = (queueItems: Item[]) => {
     setQueueItems(queueItems);
-    queueItems.forEach((item, index) => {
-      updateSessionItemMutation.mutate({
+    updateSessionItemBatchMutation.mutate(
+      queueItems.map((item, index) => ({
         sessionSlug: router.query.slug as string,
         itemIdToUpdate: item.id,
         newName: item.name,
         newOrder: index,
         newList: item.list,
-      });
-    });
+      }))
+    );
   };
 
-  const handleDeleteQueueItem = (itemToDelete: Item) => {
-    setQueueItems(queueItems.filter((item) => item.id !== itemToDelete.id));
-    deleteSessionItemMutation.mutate({
+  const handleDeleteQueueItem = async (itemToDelete: Item) => {
+    await deleteSessionItemMutation.mutateAsync({
       sessionSlug: router.query.slug as string,
       itemIdToDelete: itemToDelete.id,
     });
+    setQueueItems(queueItems.filter((item) => item.id !== itemToDelete.id));
   };
 
   return (
