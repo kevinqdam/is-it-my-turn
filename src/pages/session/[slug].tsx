@@ -95,6 +95,10 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     sessionItemsQuery.data,
   ]);
 
+  const isQueryLoading =
+    sessionItemsQuery.isLoading || sessionItemsQuery.isRefetching;
+  const isQueryError =
+    sessionItemsQuery.isError || sessionItemsQuery.isRefetchError;
   const isMutationLoading =
     createSessionItemMutation.isLoading ||
     updateSessionItemMutation.isLoading ||
@@ -112,10 +116,10 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
    * The status bar is visible whenever any query or mutation is loading
    */
   useEffect(() => {
-    if (sessionItemsQuery.isLoading || isMutationLoading) {
+    if (isQueryLoading || isMutationLoading) {
       setIsStatusBarVisible(true);
     }
-  }, [sessionItemsQuery.isLoading, isMutationLoading, isMutationError]);
+  }, [isQueryLoading, isMutationLoading]);
 
   /**
    * The status bar hides when the queries and mutations are all successful
@@ -134,10 +138,10 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
    * The status bar is visible when there is an error
    */
   useEffect(() => {
-    if (sessionItemsQuery.isError || isMutationError) {
+    if (isQueryError || isMutationError) {
       setIsStatusBarVisible(true);
     }
-  }, [sessionItemsQuery.isError, isMutationError]);
+  }, [isQueryError, isMutationError]);
 
   const isShuffleDisabled =
     isMutationLoading ||
@@ -348,17 +352,15 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
             className={cn("absolute flex w-full justify-center")}
             aria-hidden={!isStatusBarVisible}
           >
-            {(isMutationLoading && (
+            {((isQueryLoading || isMutationLoading) && (
               <div
                 className="absolute rounded-lg border border-slate-500 bg-slate-100 px-4 py-3 text-slate-700"
                 role="alert"
               >
-                <p className="font-bold">
-                  {isMutationLoading ? "Loading..." : "Success!"}
-                </p>
+                <p className="font-bold">Loading...</p>
               </div>
             )) ||
-              (isMutationError && (
+              ((isQueryError || isMutationError) && (
                 <div
                   className="absolute rounded-lg border border-red-500 bg-red-100 px-4 py-3 text-red-700"
                   role="alert"
