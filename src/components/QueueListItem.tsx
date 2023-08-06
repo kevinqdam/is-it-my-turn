@@ -5,7 +5,7 @@ import useRaisedShadow from "~/hooks/use-raised-shadow";
 import cn from "classnames";
 
 type QueueListItemProps = {
-  isMutationLoading: boolean;
+  isCreateUpdateMutationLoading: boolean;
   item: Item;
   handleUpdateItem: (itemId: string, itemNewName: string) => void;
   handleDeleteQueueItem: (itemToDelete: Item) => void;
@@ -23,7 +23,7 @@ const calcIsNewItemNameValid = (newItemName: string) => {
 
 const QueueListItem: React.FC<QueueListItemProps> = ({
   item,
-  isMutationLoading,
+  isCreateUpdateMutationLoading,
   handleUpdateItem,
   handleDeleteQueueItem,
 }) => {
@@ -133,7 +133,10 @@ const QueueListItem: React.FC<QueueListItemProps> = ({
           </svg>
           <span className="min-w-0 grow">{item.name}</span>
           <div
-            className={cn("flex flex-row gap-2", isMutationLoading && "hidden")}
+            className={cn(
+              "flex flex-row gap-2",
+              isCreateUpdateMutationLoading && "hidden"
+            )}
           >
             <button onClick={handleStartEditingItem}>
               <svg

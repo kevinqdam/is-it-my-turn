@@ -102,68 +102,66 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     sessionItemsQuery.isLoading || sessionItemsQuery.isRefetching;
   const isQueryError =
     sessionItemsQuery.isError || sessionItemsQuery.isRefetchError;
-  const isMutationLoading =
+  const isCreateUpdateMutationLoading =
     createSessionItemMutation.isLoading ||
     updateSessionItemMutation.isLoading ||
     updateWhosNextMutation.isLoading ||
     updateSessionItemBatchMutation.isLoading ||
-    deleteSessionItemMutation.isLoading ||
     isReorderDebounceWaiting;
-  const isMutationError =
+  const isCreateUpdateMutationError =
     createSessionItemMutation.isError ||
     updateSessionItemMutation.isError ||
     updateWhosNextMutation.isError ||
-    updateSessionItemBatchMutation.isError ||
-    deleteSessionItemMutation.isError;
+    updateSessionItemBatchMutation.isError;
 
   /**
    * The status bar is visible whenever any query or mutation is loading
    */
   useEffect(() => {
-    if (isQueryLoading || isMutationLoading) {
+    if (isQueryLoading || isCreateUpdateMutationLoading) {
       setIsStatusBarVisible(true);
     }
-  }, [isQueryLoading, isMutationLoading]);
+  }, [isQueryLoading, isCreateUpdateMutationLoading]);
 
   /**
    * The status bar hides when the queries and mutations are all successful
    */
   useEffect(() => {
-    if (sessionItemsQuery.isSuccess && !isMutationLoading && !isMutationError) {
+    if (sessionItemsQuery.isSuccess && !isCreateUpdateMutationLoading && !isCreateUpdateMutationError) {
       const hideStatusBar = async () => {
         await new Promise((resolve) => setTimeout(resolve, 1_000));
         setIsStatusBarVisible(false);
       };
       hideStatusBar();
     }
-  }, [sessionItemsQuery.isSuccess, isMutationLoading, isMutationError]);
+  }, [sessionItemsQuery.isSuccess, isCreateUpdateMutationLoading, isCreateUpdateMutationError]);
 
   /**
    * The status bar is visible when there is an error
    */
   useEffect(() => {
-    if (isQueryError || isMutationError) {
+    if (isQueryError || isCreateUpdateMutationError) {
       setIsStatusBarVisible(true);
     }
-  }, [isQueryError, isMutationError]);
+  }, [isQueryError, isCreateUpdateMutationError]);
 
   const isShuffleDisabled =
-    isMutationLoading ||
+    isCreateUpdateMutationLoading ||
     sessionItemsQuery.isLoading ||
     sessionItemsQuery.isFetching;
   const isResetDisabled =
-    isMutationLoading ||
+    isCreateUpdateMutationLoading ||
     sessionItemsQuery.isLoading ||
     sessionItemsQuery.isFetching;
   const isCreateQueueItemInputDisabled =
-    isMutationLoading ||
+    isCreateUpdateMutationLoading ||
     sessionItemsQuery.isLoading ||
     sessionItemsQuery.isFetching;
   const isWhosNextDisabled =
     sessionItemsQuery.isLoading ||
     sessionItemsQuery.isFetching ||
     queueItems.length === 0 ||
-    isMutationLoading;
+    isCreateUpdateMutationLoading;
 
   const handleWhosNextClick = async () => {
     const [newNextItem] = queueItems;
@@ -320,8 +318,8 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     updateReorderDebounced(queueItems);
   };
 
-  const handleDeleteQueueItem = async (itemToDelete: Item) => {
-    await deleteSessionItemMutation.mutateAsync({
+  const handleDeleteQueueItem = (itemToDelete: Item) => {
+    deleteSessionItemMutation.mutateAsync({
       sessionSlug: router.query.slug as string,
       itemIdToDelete: itemToDelete.id,
     });
@@ -366,7 +364,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
             className={cn("absolute flex w-full justify-center")}
             aria-hidden={!isStatusBarVisible}
           >
-            {((isQueryLoading || isMutationLoading) && (
+            {((isQueryLoading || isCreateUpdateMutationLoading) && (
               <div
                 className="absolute rounded-lg border border-slate-500 bg-slate-100 px-4 py-3 text-slate-700"
                 role="alert"
@@ -374,7 +372,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
                 <p className="font-bold">Loading...</p>
               </div>
             )) ||
-              ((isQueryError || isMutationError) && (
+              ((isQueryError || isCreateUpdateMutationError) && (
                 <div
                   className="absolute rounded-lg border border-red-500 bg-red-100 px-4 py-3 text-red-700"
                   role="alert"
@@ -477,7 +475,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
                         <QueueListItem
                           key={queueItem.id}
                           item={queueItem}
-                          isMutationLoading={isMutationLoading}
+                          isCreateUpdateMutationLoading={isCreateUpdateMutationLoading}
                           handleUpdateItem={handleUpdateItem}
                           handleDeleteQueueItem={handleDeleteQueueItem}
                         />
