@@ -110,13 +110,14 @@ export const router = createTRPCRouter({
   createSessionItem: publicProcedure
     .input(
       z.object({
+        id: z.string(),
         name: z.string().max(MAX_ITEM_NAME_LENGTH),
         sessionSlug: z.string().regex(SLUG_PATTERN),
         order: z.number(),
         list: z.enum([List.QUEUE, List.NEXT, List.WENT]),
       })
     )
-    .mutation(async ({ input: { name, sessionSlug, order, list } }) => {
+    .mutation(async ({ input: { id, name, sessionSlug, order, list } }) => {
       if (name.length > MAX_SESSION_NAME_INPUT_LENGTH) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -131,6 +132,7 @@ export const router = createTRPCRouter({
       }
       await prisma.item.create({
         data: {
+          id,
           name,
           sessionSlug,
           order,

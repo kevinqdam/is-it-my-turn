@@ -274,6 +274,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     };
     const newQueueItems = [...queueItems, queueItemToInsert];
     await createSessionItemMutation.mutateAsync({
+      id: queueItemToInsert.id,
       sessionSlug: router.query.slug as string,
       name: queueItemName,
       order: queueItems.length + wentAlreadyItems.length + (nextItem ? 1 : 0),
