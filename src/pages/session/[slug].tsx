@@ -18,6 +18,7 @@ import { prisma } from "~/server/db";
 import { appRouter } from "~/server/api/root";
 import { MAX_ITEM_NAME_LENGTH } from "~/utils/session-name";
 import Head from "next/head";
+import { useDebouncedCallback } from "use-debounce";
 
 /**
  * Comparator to sort an array of {@link Item}s in ascending order
@@ -76,6 +77,8 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     useState(false);
   const [isStatusBarVisible, setIsStatusBarVisible] = useState(false);
   const [visibleMobileList, setVisibleMobileList] = useState<List>("NEXT");
+  const [isReorderDebounceWaiting, setIsReorderDebounceWaiting] =
+    useState(false);
 
   /**
    * Set the data in the client after the query resolves successfully
@@ -104,7 +107,8 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     updateSessionItemMutation.isLoading ||
     updateWhosNextMutation.isLoading ||
     updateSessionItemBatchMutation.isLoading ||
-    deleteSessionItemMutation.isLoading;
+    deleteSessionItemMutation.isLoading ||
+    isReorderDebounceWaiting;
   const isMutationError =
     createSessionItemMutation.isError ||
     updateSessionItemMutation.isError ||
@@ -148,6 +152,10 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     sessionItemsQuery.isLoading ||
     sessionItemsQuery.isFetching;
   const isResetDisabled =
+    isMutationLoading ||
+    sessionItemsQuery.isLoading ||
+    sessionItemsQuery.isFetching;
+  const isCreateQueueItemInputDisabled =
     isMutationLoading ||
     sessionItemsQuery.isLoading ||
     sessionItemsQuery.isFetching;
@@ -293,8 +301,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     });
   };
 
-  const handleReorderQueue = (queueItems: Item[]) => {
-    setQueueItems(queueItems);
+  const updateReorderDebounced = useDebouncedCallback((queueItems: Item[]) => {
     updateSessionItemBatchMutation.mutate(
       queueItems.map((item, index) => ({
         sessionSlug: router.query.slug as string,
@@ -304,6 +311,12 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
         newList: item.list,
       }))
     );
+    setIsReorderDebounceWaiting(false);
+  }, 1_500);
+  const handleReorderQueue = (queueItems: Item[]) => {
+    setIsReorderDebounceWaiting(true);
+    setQueueItems(queueItems);
+    updateReorderDebounced(queueItems);
   };
 
   const handleDeleteQueueItem = async (itemToDelete: Item) => {
@@ -575,9 +588,10 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
                 onChange={handleOnChangeAddToQueue}
                 placeholder="Add to queue"
                 className={cn(
-                  "mr-2 w-full outline-none",
+                  "mr-2 w-full outline-none disabled:hover:cursor-not-allowed placeholder-gray-400 disabled:placeholder-opacity-0 disabled:bg-transparent",
                   shouldShowAddToQueueError && "bg-red-100 text-red-700"
                 )}
+                disabled={isCreateQueueItemInputDisabled}
               />
               <motion.button type="submit" layout>
                 <svg
@@ -589,7 +603,8 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
                     "h-6 w-6",
                     shouldShowAddToQueueError
                       ? "stroke-red-700"
-                      : "stroke-slate-600"
+                      : "stroke-slate-600",
+                    isCreateQueueItemInputDisabled && "stroke-transparent"
                   )}
                 >
                   <path
