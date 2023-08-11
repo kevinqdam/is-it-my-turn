@@ -546,7 +546,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
                   {wentAlreadyItems.length > 0 ? (
                     <motion.div
                       layout
-                      className="flex w-full flex-col gap-4 p-4"
+                      className="flex w-full flex-col gap-4 p-4 overflow-scroll"
                     >
                       {wentAlreadyItems.map((wentAlreadyItem) => (
                         <motion.span
