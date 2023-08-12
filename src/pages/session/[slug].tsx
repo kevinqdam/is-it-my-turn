@@ -127,14 +127,22 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
    * The status bar hides when the queries and mutations are all successful
    */
   useEffect(() => {
-    if (sessionItemsQuery.isSuccess && !isCreateUpdateMutationLoading && !isCreateUpdateMutationError) {
+    if (
+      sessionItemsQuery.isSuccess &&
+      !isCreateUpdateMutationLoading &&
+      !isCreateUpdateMutationError
+    ) {
       const hideStatusBar = async () => {
         await new Promise((resolve) => setTimeout(resolve, 1_000));
         setIsStatusBarVisible(false);
       };
       hideStatusBar();
     }
-  }, [sessionItemsQuery.isSuccess, isCreateUpdateMutationLoading, isCreateUpdateMutationError]);
+  }, [
+    sessionItemsQuery.isSuccess,
+    isCreateUpdateMutationLoading,
+    isCreateUpdateMutationError,
+  ]);
 
   /**
    * The status bar is visible when there is an error
@@ -164,50 +172,59 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     isCreateUpdateMutationLoading;
 
   const handleWhosNextClick = async () => {
-    const [newNextItem] = queueItems;
-    const newQueueItems = queueItems.slice(1);
-    const newWentAlreadyItems = nextItem
-      ? [...wentAlreadyItems, nextItem]
-      : [...wentAlreadyItems];
-    const currentNextItem = nextItem;
-    if (newNextItem) {
-      await updateWhosNextMutation.mutateAsync({
-        currentNextItem: currentNextItem && {
-          sessionSlug: router.query.slug as string,
-          itemIdToUpdate: currentNextItem.id,
-          newList: "WENT",
-          newOrder: currentNextItem.order,
-          newName: currentNextItem.name,
-        },
-        newNextItem: {
-          sessionSlug: router.query.slug as string,
-          itemIdToUpdate: newNextItem.id,
-          newList: "NEXT",
-          newOrder: newNextItem.order,
-          newName: newNextItem.name,
-        },
-      });
+    const [maybeNextItem] = queueItems;
+    if (!maybeNextItem) {
+      return;
     }
+    const newNextItem = { ...maybeNextItem, list: List.NEXT };
+    const newQueueItems = queueItems.slice(1);
+    // current next item is added to the WENT list
+    const currentNextItem = nextItem && { ...nextItem, list: List.WENT };
+    const newWentAlreadyItems = currentNextItem
+      ? [...wentAlreadyItems, currentNextItem]
+      : [...wentAlreadyItems];
+    await updateWhosNextMutation.mutateAsync({
+      currentNextItem: currentNextItem && {
+        sessionSlug: router.query.slug as string,
+        itemIdToUpdate: currentNextItem.id,
+        newList: currentNextItem.list,
+        newOrder: currentNextItem.order,
+        newName: currentNextItem.name,
+      },
+      newNextItem: {
+        sessionSlug: router.query.slug as string,
+        itemIdToUpdate: newNextItem.id,
+        newList: newNextItem.list,
+        newOrder: newNextItem.order,
+        newName: newNextItem.name,
+      },
+    });
     setQueueItems(newQueueItems);
     setNextItem(newNextItem);
     setWentAlreadyItems(newWentAlreadyItems);
   };
 
   const handleShuffleClick = async () => {
-    const newQueueItems = [...queueItems];
-    shuffleArray(newQueueItems);
+    const queueItemsCopy = [...queueItems];
+    shuffleArray(queueItemsCopy);
     const minimumOrder = Math.min(
-      ...newQueueItems.map((item: Item) => item.order)
+      ...queueItemsCopy.map((item: Item) => item.order)
     );
+    const newQueueItems = queueItemsCopy.map((item, index) => {
+      const newOrder = minimumOrder + index;
+      return {
+        ...item,
+        order: newOrder,
+      };
+    });
     await updateSessionItemBatchMutation.mutateAsync(
-      newQueueItems.map((item, index) => {
-        const newOrder = minimumOrder + index;
+      newQueueItems.map((item) => {
         return {
           sessionSlug: router.query.slug as string,
           itemIdToUpdate: item.id,
           newList: item.list,
           newName: item.name,
-          newOrder,
+          newOrder: item.order,
         };
       })
     );
@@ -219,14 +236,18 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
       ...queueItems,
       ...wentAlreadyItems,
       ...(nextItem ? [nextItem] : []),
-    ];
+    ].map((queueItem, index) => ({
+      ...queueItem,
+      list: List.QUEUE,
+      order: index,
+    }));
     await updateSessionItemBatchMutation.mutateAsync(
-      newQueueItems.map((item, index) => ({
+      newQueueItems.map((item) => ({
         sessionSlug: router.query.slug as string,
         itemIdToUpdate: item.id,
-        newList: "QUEUE",
+        newList: item.list,
         newName: item.name,
-        newOrder: index,
+        newOrder: item.order,
       }))
     );
     setQueueItems(newQueueItems);
@@ -314,7 +335,16 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
   }, 1_500);
   const handleReorderQueue = (queueItems: Item[]) => {
     setIsReorderDebounceWaiting(true);
-    setQueueItems(queueItems);
+    const minOrder = Math.min(...queueItems.map((item) => item.order));
+    setQueueItems(
+      queueItems.map((item, index) => {
+        const newOrder = minOrder + index;
+        return {
+          ...item,
+          order: newOrder,
+        };
+      })
+    );
     updateReorderDebounced(queueItems);
   };
 
@@ -475,7 +505,9 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
                         <QueueListItem
                           key={queueItem.id}
                           item={queueItem}
-                          isCreateUpdateMutationLoading={isCreateUpdateMutationLoading}
+                          isCreateUpdateMutationLoading={
+                            isCreateUpdateMutationLoading
+                          }
                           handleUpdateItem={handleUpdateItem}
                           handleDeleteQueueItem={handleDeleteQueueItem}
                         />
@@ -535,7 +567,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
             <motion.div
               layout
               className={cn(
-                "h-72 w-full flex-col overflow-hidden rounded-lg border md:flex md:h-full",
+                "h-72 w-full flex-col overflow-auto rounded-lg border md:flex md:h-full",
                 visibleMobileList === "WENT" ? "flex" : "hidden"
               )}
             >
@@ -546,7 +578,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
                   {wentAlreadyItems.length > 0 ? (
                     <motion.div
                       layout
-                      className="flex w-full flex-col gap-4 p-4 overflow-scroll"
+                      className="flex w-full flex-col gap-4 p-4"
                     >
                       {wentAlreadyItems.map((wentAlreadyItem) => (
                         <motion.span
@@ -587,7 +619,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
                 onChange={handleOnChangeAddToQueue}
                 placeholder="Add to queue"
                 className={cn(
-                  "mr-2 w-full outline-none disabled:hover:cursor-not-allowed placeholder-gray-400 disabled:placeholder-opacity-0 disabled:bg-transparent",
+                  "mr-2 w-full placeholder-gray-400 outline-none disabled:bg-transparent disabled:placeholder-opacity-0 disabled:hover:cursor-not-allowed",
                   shouldShowAddToQueueError && "bg-red-100 text-red-700"
                 )}
                 disabled={isCreateQueueItemInputDisabled}
