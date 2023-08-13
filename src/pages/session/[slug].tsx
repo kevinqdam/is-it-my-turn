@@ -84,19 +84,16 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
    * Set the data in the client after the query resolves successfully
    */
   useEffect(() => {
-    if (sessionItemsQuery.isLoading || sessionItemsQuery.isError) return;
-    const sessionItemsCopy = [...sessionItemsQuery.data];
-    sessionItemsCopy.sort(byAscendingOrder);
-    setQueueItems(sessionItemsCopy.filter((item) => item.list === "QUEUE"));
-    setNextItem(sessionItemsCopy.find((item) => item.list === "NEXT"));
-    setWentAlreadyItems(
-      sessionItemsCopy.filter((item) => item.list === "WENT")
-    );
-  }, [
-    sessionItemsQuery.isLoading,
-    sessionItemsQuery.isError,
-    sessionItemsQuery.data,
-  ]);
+    if (sessionItemsQuery.isSuccess) {
+      const sessionItemsCopy = [...sessionItemsQuery.data];
+      sessionItemsCopy.sort(byAscendingOrder);
+      setQueueItems(sessionItemsCopy.filter((item) => item.list === "QUEUE"));
+      setNextItem(sessionItemsCopy.find((item) => item.list === "NEXT"));
+      setWentAlreadyItems(
+        sessionItemsCopy.filter((item) => item.list === "WENT")
+      );
+    }
+  }, [sessionItemsQuery.data, sessionItemsQuery.isSuccess]);
 
   const isQueryLoading =
     sessionItemsQuery.isLoading || sessionItemsQuery.isRefetching;
