@@ -47,27 +47,36 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
 const Session: NextPage<{ name: string }> = ({ name }) => {
   const router = useRouter();
+  const apiContext = api.useContext();
 
   const sessionItemsQuery = api.router.getAllSessionItems.useQuery(
     { sessionSlug: router.query.slug as string },
     {
       refetchOnWindowFocus: "always",
       enabled: Boolean(router.query.slug),
+      staleTime: Infinity,
     }
   );
   const createSessionItemMutation = api.router.createSessionItem.useMutation({
     retry: false,
+    onError: () => apiContext.invalidate(),
   });
   const updateSessionItemMutation = api.router.updateSessionItem.useMutation({
     retry: false,
+    onError: () => apiContext.invalidate(),
   });
   const updateWhosNextMutation = api.router.updateWhosNext.useMutation({
     retry: false,
+    onError: () => apiContext.invalidate(),
   });
   const updateSessionItemBatchMutation =
-    api.router.updateSessionItemBatch.useMutation({ retry: false });
+    api.router.updateSessionItemBatch.useMutation({
+      retry: false,
+      onError: () => apiContext.invalidate(),
+    });
   const deleteSessionItemMutation = api.router.deleteSessionItem.useMutation({
     retry: false,
+    onError: () => apiContext.invalidate(),
   });
 
   const [queueItems, setQueueItems] = useState<Item[]>([]);
@@ -76,6 +85,9 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
   const [shouldShowAddToQueueError, setShouldShowAddToQueueError] =
     useState(false);
   const [isStatusBarVisible, setIsStatusBarVisible] = useState(false);
+  const [statusBarTimeoutId, setStatusBarTimeoutId] = useState<
+    number | undefined
+  >();
   const [visibleMobileList, setVisibleMobileList] = useState<List>("NEXT");
   const [isReorderDebounceWaiting, setIsReorderDebounceWaiting] =
     useState(false);
@@ -116,8 +128,13 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
    */
   useEffect(() => {
     if (isQueryLoading || isCreateUpdateMutationLoading) {
+      if (statusBarTimeoutId !== undefined) {
+        clearTimeout(statusBarTimeoutId);
+      }
       setIsStatusBarVisible(true);
     }
+  // NOTE: do not put `statusBarTimeoutId` in the dependency array. Performance suffers for no benefit.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isQueryLoading, isCreateUpdateMutationLoading]);
 
   /**
@@ -129,12 +146,18 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
       !isCreateUpdateMutationLoading &&
       !isCreateUpdateMutationError
     ) {
-      const hideStatusBar = async () => {
-        await new Promise((resolve) => setTimeout(resolve, 1_000));
-        setIsStatusBarVisible(false);
-      };
-      hideStatusBar();
+      if (statusBarTimeoutId !== undefined) {
+        clearTimeout(statusBarTimeoutId);
+      }
+      setStatusBarTimeoutId(
+        setTimeout(
+          () => setIsStatusBarVisible(false),
+          1_000
+        ) as unknown as number
+      );
     }
+  // NOTE: do not put `statusBarTimeoutId` in the dependency array. Performance suffers for no benefit.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     sessionItemsQuery.isSuccess,
     isCreateUpdateMutationLoading,
@@ -168,7 +191,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     queueItems.length === 0 ||
     isCreateUpdateMutationLoading;
 
-  const handleWhosNextClick = async () => {
+  const handleWhosNextClick = () => {
     const [maybeNextItem] = queueItems;
     if (!maybeNextItem) {
       return;
@@ -180,7 +203,10 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     const newWentAlreadyItems = currentNextItem
       ? [...wentAlreadyItems, currentNextItem]
       : [...wentAlreadyItems];
-    await updateWhosNextMutation.mutateAsync({
+    setQueueItems(newQueueItems);
+    setNextItem(newNextItem);
+    setWentAlreadyItems(newWentAlreadyItems);
+    updateWhosNextMutation.mutate({
       currentNextItem: currentNextItem && {
         sessionSlug: router.query.slug as string,
         itemIdToUpdate: currentNextItem.id,
@@ -196,12 +222,9 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
         newName: newNextItem.name,
       },
     });
-    setQueueItems(newQueueItems);
-    setNextItem(newNextItem);
-    setWentAlreadyItems(newWentAlreadyItems);
   };
 
-  const handleShuffleClick = async () => {
+  const handleShuffleClick = () => {
     const queueItemsCopy = [...queueItems];
     shuffleArray(queueItemsCopy);
     const minimumOrder = Math.min(
@@ -214,7 +237,8 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
         order: newOrder,
       };
     });
-    await updateSessionItemBatchMutation.mutateAsync(
+    setQueueItems(newQueueItems);
+    updateSessionItemBatchMutation.mutate(
       newQueueItems.map((item) => {
         return {
           sessionSlug: router.query.slug as string,
@@ -225,10 +249,9 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
         };
       })
     );
-    setQueueItems(newQueueItems);
   };
 
-  const handleResetClick = async () => {
+  const handleResetClick = () => {
     const newQueueItems = [
       ...queueItems,
       ...wentAlreadyItems,
@@ -238,7 +261,10 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
       list: List.QUEUE,
       order: index,
     }));
-    await updateSessionItemBatchMutation.mutateAsync(
+    setQueueItems(newQueueItems);
+    setNextItem(undefined);
+    setWentAlreadyItems([]);
+    updateSessionItemBatchMutation.mutate(
       newQueueItems.map((item) => ({
         sessionSlug: router.query.slug as string,
         itemIdToUpdate: item.id,
@@ -247,9 +273,6 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
         newOrder: item.order,
       }))
     );
-    setQueueItems(newQueueItems);
-    setNextItem(undefined);
-    setWentAlreadyItems([]);
   };
 
   const handleOnChangeAddToQueue: ChangeEventHandler<HTMLInputElement> = (
@@ -262,9 +285,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
     }
   };
 
-  const handleAddToQueue = async (
-    submitEvent: BaseSyntheticEvent<SubmitEvent>
-  ) => {
+  const handleAddToQueue = (submitEvent: BaseSyntheticEvent<SubmitEvent>) => {
     submitEvent.preventDefault();
     const formElement = new FormData(submitEvent.target);
     const formData = Object.fromEntries(formElement.entries()) as {
@@ -289,14 +310,14 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
       sessionSlug: router.query.slug as string,
     };
     const newQueueItems = [...queueItems, queueItemToInsert];
-    await createSessionItemMutation.mutateAsync({
+    setQueueItems(newQueueItems);
+    createSessionItemMutation.mutate({
       id: queueItemToInsert.id,
       sessionSlug: router.query.slug as string,
       name: queueItemName,
       order: queueItems.length + wentAlreadyItems.length + (nextItem ? 1 : 0),
       list: "QUEUE",
     });
-    setQueueItems(newQueueItems);
 
     // clear the input after successful submit
     submitEvent.target.reset();
