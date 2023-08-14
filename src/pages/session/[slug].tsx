@@ -449,7 +449,7 @@ const Session: NextPage<{ name: string }> = ({ name }) => {
           <button
             onClick={() => setVisibleMobileList("QUEUE")}
             className={cn(
-              "ml-0 flex h-10 items-center justify-center rounded-l-lg border px-4 leading-tight",
+              "ml-0 flex h-10 items-center justify-center rounded-l-lg border border-gray-300 px-4 leading-tight",
               visibleMobileList === "QUEUE"
                 ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 : "bg-white text-gray-500 hover:bg-gray-100"
