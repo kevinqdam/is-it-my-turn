@@ -76,27 +76,49 @@ const Home: NextPage = () => {
 
   const handleOnInput = (changeEvent: ChangeEvent<HTMLInputElement>) => {
     changeEvent.preventDefault();
-    changeEvent.target.value = changeEvent.target.value.trim();
+
+    // Do not allow leading whitespace
+    changeEvent.target.value = changeEvent.target.value.trimStart();
+
+    /**
+     * The trimmed session name is the one we store in the database. The client
+     * can put trailing spaces, but these won't be honored when creating the
+     * session on button click.
+     */
+    const trimmedInputNewSessionName = changeEvent.target.value.trim();
+
+    /**
+     * Do not check if the session slug exists if there is no new input from the
+     * client or the session name has not changed.
+     */
     if (
       (!changeEvent.target.value && !newSessionName) ||
-      changeEvent.target.value === newSessionName
+      trimmedInputNewSessionName === newSessionName
     ) {
       return;
     }
-    const { errors, slug } = toSessionSlug(changeEvent.target.value);
-    if (changeEvent.target.value) {
-      setHasProvidedInput(true);
-    }
-    if (changeEvent.target.value.length > MAX_SESSION_NAME_INPUT_LENGTH) {
-      changeEvent.target.value = changeEvent.target.value.slice(
-        0,
-        MAX_SESSION_NAME_INPUT_LENGTH + 1
-      );
+
+    // Calculate the slug from the session name + check for errors
+    const { errors, slug } = toSessionSlug(trimmedInputNewSessionName);
+
+    /**
+     * Do not set isTyping to true when the slug has not changed (i.e., if the client keeps
+     * adding trailing spaces)
+     */
+    if (slug === newSlugDisplayedToClient) {
       return;
+    }
+
+    /**
+     * The client has put new and meaningful input at this point. Set the state required
+     * to kick off a "session slug exists" query.
+     */
+    if (trimmedInputNewSessionName) {
+      setHasProvidedInput(true);
     }
     setIsTyping(true);
     setNewSlugDisplayedToClient(slug);
-    setNewSessionName(changeEvent.target.value);
+    setNewSessionName(trimmedInputNewSessionName);
     setSessionNameErrors(errors);
   };
 
@@ -193,6 +215,7 @@ const Home: NextPage = () => {
                   className="w-64 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-lg text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-teal-500"
                   placeholder="Enter your session name"
                   onInput={handleOnInput}
+                  maxLength={MAX_SESSION_NAME_INPUT_LENGTH}
                   required
                 />
                 {newSlugDisplayedToClient && (
